@@ -8,4 +8,4 @@ fs.writeFileSync('index.html',html);
 fs.writeFileSync('public/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc></url></urlset>`);
 fs.writeFileSync('public/robots.txt',`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 console.log('Public metadata configured. Run npm run build again before deploying.');
-repository: 'https://github.com/yasmeenmh90-beep/nexa-public',
+

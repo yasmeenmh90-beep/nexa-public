@@ -6,7 +6,20 @@ const states=['idle','listening','thinking','speaking'] as const;
 type State=typeof states[number];
 function Section({id,kicker,title,children}:{id:string;kicker:string;title:string;children:ReactNode}){return <section id={id} className="section"><div className="section-heading"><p className="eyebrow">{kicker}</p><h2>{title}</h2></div>{children}</section>}
 function Tag({children}:{children:ReactNode}){return <span className="tag">{children}</span>}
-function Portrait({state='idle'}:{state?:State}){return <div className={`portrait ${state}`}><div className="orbit"/><img src="/avatar/nexa-studio-dashboard.png" width="291" height="313" alt="NEXA wearing a lavender hijab, purple headphones and silver NEXA armor"/><span className="portrait-state"><i/>{state.toUpperCase()} <small>VISUAL DEMO</small></span></div>}
+function Portrait({state='idle'}:{state?:State}){
+ const speaking=state==='speaking';
+ return <div className={`portrait ${state}`}>
+  <div className="orbit" aria-hidden="true"/>
+  <div className="nexa-aura" aria-hidden="true"/>
+  <svg className="nexa-voice-halo" viewBox="0 0 300 300" aria-hidden="true" focusable="false">
+   <circle className="nexa-halo-track" cx="150" cy="150" r="124"/>
+   {Array.from({length:48},(_,index)=><g key={index} transform={`rotate(${index*7.5} 150 150)`}><rect className="nexa-halo-bar" x="148" y="9" width="4" height={10+(index%5)*3} rx="2" style={{animationDelay:`-${(index%9)*0.13}s`,animationDuration:`${0.65+(index%4)*0.12}s`}}/></g>)}
+  </svg>
+  <img className="nexa-character" src="/avatar/nexa-studio-dashboard.png" width="291" height="313" alt="NEXA wearing a lavender hijab, purple headphones and silver NEXA armor"/>
+  <div className="nexa-voice-wave" aria-hidden="true">{Array.from({length:13},(_,index)=><span key={index} style={{animationDelay:`-${index*0.11}s`,height:`${8+(6-Math.abs(6-index))*3}px`}}/>)}</div>
+  <span className="portrait-state"><i/>{state.toUpperCase()} <small>{speaking?'VOICE PLAYING':'NEXA'}</small></span>
+ </div>
+}
 function ScreenshotGallery(){
  const dialog=useRef<HTMLDialogElement>(null);const [image,setImage]=useState('desktop');
  const labels:Record<string,string>={login:'Login interface · demo entry',desktop:'Desktop dashboard',mobile:'Mobile dashboard',architecture:'Earlier public architecture view',states:'Actual visual-state presentation'};

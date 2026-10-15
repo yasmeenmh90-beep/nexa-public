@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { SpeechMotion } from "../components/SpeakingPortrait";
 
 type Recognition = {
   lang: string;
@@ -27,6 +28,7 @@ export function useVoice(onTranscript: (text: string) => void) {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState("");
+  const [speechMotion, setSpeechMotion] = useState<SpeechMotion>();
 
   const recognition = useRef<Recognition | null>(null);
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
@@ -69,6 +71,9 @@ export function useVoice(onTranscript: (text: string) => void) {
 
       if (speech) {
         speech.onstart = null;
+        speech.onboundary = null;
+        speech.onpause = null;
+        speech.onresume = null;
         speech.onend = null;
         speech.onerror = null;
       }
@@ -83,11 +88,15 @@ export function useVoice(onTranscript: (text: string) => void) {
 
     if (current) {
       current.onstart = null;
+      current.onboundary = null;
+      current.onpause = null;
+      current.onresume = null;
       current.onend = null;
       current.onerror = null;
     }
 
     window.speechSynthesis?.cancel();
+    setSpeechMotion(undefined);
     setSpeaking(false);
   }
 
@@ -237,12 +246,25 @@ export function useVoice(onTranscript: (text: string) => void) {
     current.onstart = () => {
       if (utterance.current === current) {
         setSpeaking(true);
+        setSpeechMotion({ text: current.text, index: 0, at: performance.now(), paused: false });
       }
+    };
+
+    current.onboundary = (event) => {
+      if (utterance.current !== current || event.name === "sentence") return;
+      setSpeechMotion({ text: current.text, index: event.charIndex, at: performance.now(), paused: false });
+    };
+    current.onpause = () => {
+      if (utterance.current === current) setSpeechMotion((previous) => previous && { ...previous, paused: true });
+    };
+    current.onresume = () => {
+      if (utterance.current === current) setSpeechMotion((previous) => previous && { ...previous, at: performance.now(), paused: false });
     };
 
     current.onend = () => {
       if (utterance.current === current) {
         utterance.current = null;
+        setSpeechMotion(undefined);
         setSpeaking(false);
       }
     };
@@ -250,6 +272,7 @@ export function useVoice(onTranscript: (text: string) => void) {
     current.onerror = () => {
       if (utterance.current === current) {
         utterance.current = null;
+        setSpeechMotion(undefined);
         setSpeaking(false);
         setVoiceError("Audio could not play. Use Read aloud to try again.");
       }
@@ -269,6 +292,7 @@ export function useVoice(onTranscript: (text: string) => void) {
     listening,
     speaking,
     voiceError,
+    speechMotion,
     startListening,
     stopListening,
     speak,

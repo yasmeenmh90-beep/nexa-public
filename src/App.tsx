@@ -65,7 +65,7 @@ export default function App(){
   'Orchestration':'Separate n8n workflow foundation. The owner reports routing verification for seven read-only specialists through n8n chat. This public site does not call those workflows.',
   'Specialist workflows':'Domains include email, calendar, GitHub, projects, career, portfolio and daily intelligence. Memory is a future restricted domain, disconnected from the enabled read-only route. Domain names do not imply one workflow per domain.',
   'External services':'Authorized service access belongs to the private workflow environment. The future frontend connection is planned. Public visitors cannot connect or access personal accounts.',
-  'Response':'Sample Demo returns fictional local text; Live AI returns an OpenAI answer. Optional browser speech reads replies aloud, with an animated halo during playback. Earlier chat messages are not sent as conversation context.',
+  'Response':'Sample Demo returns fictional local text; Live AI returns an OpenAI answer. Optional browser speech reads replies aloud, with an animated halo during playback. Up to three recent completed exchanges provide short follow-up context; Reset clears it.',
  };
 
  return <>

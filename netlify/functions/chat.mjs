@@ -13,7 +13,7 @@ export default async function handler(request) {
     return json({ error: "Use POST." }, 405);
   }
 
-  // Leave live chat disabled until the interface is ready.
+  // Server-side switch for controlling public API usage.
   if (process.env.NEXA_LIVE_CHAT_ENABLED !== "true") {
     return json({ error: "Live chat is not enabled yet." }, 503);
   }
@@ -27,8 +27,11 @@ export default async function handler(request) {
     return json({ error: "Send JSON." }, 415);
   }
 
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).length > 8000) {
+  let raw;
+  try { raw = await request.text(); } catch {
+    return json({ error: "Could not read the request." }, 400);
+  }
+  if (new TextEncoder().encode(raw).length > 48000) {
     return json({ error: "Request is too large." }, 413);
   }
 
@@ -44,6 +47,25 @@ export default async function handler(request) {
 
   if (!message || message.length > 1500) {
     return json({ error: "Enter a message of 1–1500 characters." }, 400);
+  }
+
+  const history = body.history ?? [];
+  if (!Array.isArray(history) || history.length > 6 || history.length % 2 !== 0) {
+    return json({ error: "Invalid conversation history. Reset the chat." }, 400);
+  }
+  let historyLength = 0;
+  const context = [];
+  for (let index = 0; index < history.length; index++) {
+    const item = history[index];
+    if (!item || item.role !== (index % 2 === 0 ? "user" : "assistant") ||
+        typeof item.content !== "string" || !item.content.trim() || item.content.length > 2000) {
+      return json({ error: "Invalid conversation history. Reset the chat." }, 400);
+    }
+    historyLength += item.content.length;
+    context.push({ role: item.role, content: item.content });
+  }
+  if (historyLength > 6000) {
+    return json({ error: "Conversation context is too long. Reset the chat." }, 400);
   }
 
   const key = process.env.OPENAI_API_KEY;
@@ -74,7 +96,7 @@ export default async function handler(request) {
           "Never claim to have checked or changed those services.",
           "Do not request passwords, API keys or other credentials.",
         ].join(" "),
-        input: message,
+        input: [...context, { role: "user", content: message }],
       }),
     });
 

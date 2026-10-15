@@ -8,9 +8,12 @@ A React/TypeScript/Vite/Tailwind showcase by Yasmeen Azmat Ali. This public appl
 ## What works
 
 - **Sample Demo:** six fictional local task summaries; no OpenAI request.
-- **Live AI:** one submitted question at a time, sent through a Netlify Function to the OpenAI Responses API. Earlier conversation messages are not sent.
+- **Live AI:** questions sent through a Netlify Function to the OpenAI Responses API, with up to three recent completed exchanges for follow-ups (at most 6000 characters of history). Reset, mode changes or refreshing clears this browser-held context.
 - **Voice:** supported browsers can transcribe microphone input and read replies aloud. Review dictated text, then press Send.
 - **Speaking feedback:** a glowing halo, animated bars and subtle portrait movement. Precise lip sync is deferred; the experimental mouth deformation has been removed.
+- Suggested Live AI questions populate the composer for review before Send.
+- Copy answer buttons with success/failure feedback.
+- Report a problem / Suggest a feature links open prefilled public GitHub issue drafts; submitting requires a GitHub account. No conversation is automatically attached.
 - Responsive navigation, architecture cards, FAQ and screenshot lightboxes.
 
 Neither mode accesses email, calendars, private repositories, personal memory or n8n. Live answers may be inaccurate. Voice availability and voices depend on the browser; recognition may use its provider’s speech service.
@@ -24,6 +27,7 @@ npm ci
 npm run dev
 npm run typecheck
 npm run build
+node --test tests/chat.test.mjs
 ```
 
 Vite alone serves the frontend and Sample Demo. The /api/chat endpoint runs as a Netlify Function; use the deployed site or a properly configured Netlify development environment for Live AI.
@@ -49,9 +53,11 @@ Environment changes must reach the deployed function. Do not paste keys into iss
 
 ## Request controls and costs
 
-The function currently accepts POST JSON requests from the configured public origin, validates a 1–1500 character message, limits the request body to 8000 bytes, uses a 20-second upstream timeout, and requests at most 400 output tokens from gpt-4.1-mini. Its Netlify rate-limit configuration is 5 requests per 60 seconds for each IP/domain grouping.
+The function currently accepts POST JSON requests from the configured public origin, validates a 1–1500 character message, limits the request body to 48000 bytes, uses a 20-second upstream timeout, and requests at most 400 output tokens from gpt-4.1-mini. Its Netlify rate-limit configuration is 5 requests per 60 seconds for each IP/domain grouping.
 
-Origin checks are not authentication. Per-IP throttling is not a global spending cap. Check the actual Netlify and OpenAI account usage controls separately; this repository cannot verify account budgets or guarantee a maximum bill. Netlify deployment usage and OpenAI API usage are separate.
+History is limited to six alternating user/assistant messages, at most 2000 characters each and 6000 characters total; system/developer roles are rejected. Only completed Live AI exchanges are retained for follow-ups. No chat is persisted to browser storage or an application database.
+
+Follow-up context increases input-token use compared with isolated questions. Origin checks are not authentication. Per-IP throttling is not a global spending cap. Check the actual Netlify and OpenAI account usage controls separately; this repository cannot verify account budgets or guarantee a maximum bill. Netlify deployment usage and OpenAI API usage are separate.
 
 To disable Live AI, set NEXA_LIVE_CHAT_ENABLED to false and deploy that change. Sample Demo remains available.
 
@@ -81,7 +87,7 @@ Public links live in src/config/publicLinks.ts. A booking link and video are opt
 
 ## Validation and remaining work
 
-The owner reports successful microphone transcription, Live AI answers and spoken-reply tests on the deployed site. TypeScript checks passed during the cleanup. Earlier Netlify releases built and deployed; a new production build is validated by the next Netlify deployment.
+The owner reports successful microphone transcription, Live AI answers and spoken-reply tests on the deployed site. TypeScript checks and seven Node backend tests passed for the visitor tools update. Backend tests mock OpenAI; they do not verify live model output, clipboard permissions or browser interactions. Earlier Netlify releases built and deployed; a new production build is validated by the next Netlify deployment.
 
 The screenshot gallery documents an earlier dashboard prototype, not every feature of the current release. Historical source-recovery and n8n verification claims are attributed to the owner.
 

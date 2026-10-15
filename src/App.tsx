@@ -1,5 +1,5 @@
 import VoiceChat from './components/VoiceChat';
-import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { PUBLIC_LINKS } from './config/publicLinks';
 const portfolio=PUBLIC_LINKS.portfolio;const github=PUBLIC_LINKS.repository??PUBLIC_LINKS.githubProfile;const linkedin=PUBLIC_LINKS.linkedin;
 const states=['idle','listening','thinking','speaking'] as const;
@@ -42,21 +42,8 @@ const faqs=[
  ['What comes next?','Finish cross-device review, review dependency warnings, introduce owner authentication and a protected server API, then connect existing workflows incrementally and add real voice.'],
 ];
 export default function App(){
- const [menu,setMenu]=useState(false);const [state,setState]=useState<State>('idle');
- const [message,setMessage]=useState('');const [messages,setMessages]=useState<{role:string;text:string}[]>([]);
+ const [menu,setMenu]=useState(false);
  const [layer,setLayer]=useState('User interface');
- const timers=useRef<ReturnType<typeof setTimeout>[]>([]);const chatLog=useRef<HTMLDivElement>(null);const [busy,setBusy]=useState(false);
- const clearTimers=()=>{timers.current.forEach(clearTimeout);timers.current=[]};
- useEffect(()=>()=>clearTimers(),[]);
- useEffect(()=>{chatLog.current?.scrollTo({top:chatLog.current.scrollHeight,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})},[messages,busy]);
- function resetDemo(){clearTimers();setMessages([]);setMessage('');setState('idle');setBusy(false)}
- function selectState(s:State){clearTimers();setBusy(false);setState(s)}
- function respond(prompt:string){
-  if(busy)return;clearTimers();setBusy(true);setState('thinking');setMessage('');
-  setMessages(m=>[...m,{role:'You',text:prompt}]);
-  const topic=Object.keys(samples).find(k=>prompt.toLowerCase().includes(k.toLowerCase()));
-  timers.current.push(setTimeout(()=>{setMessages(m=>[...m,{role:'NEXA · sample',text:samples[topic??'']??'This public demo uses predefined sample responses. Try a quick action to explore a fictional briefing, calendar, inbox or project summary. No AI service or private integration was contacted.'}]);setState('speaking');setBusy(false);timers.current.push(setTimeout(()=>setState('idle'),2800))},650));
- }
  const nav=['Overview','Demo','Architecture','Security','Development','Case study','FAQ'];
  const ids=['overview','demo','architecture','security','development','case-study','faq'];
  const layerText:Record<string,string>={

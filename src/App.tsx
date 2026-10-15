@@ -1,4 +1,5 @@
 import VoiceChat from './components/VoiceChat';
+import { usePageMotion } from './hooks/usePageMotion';
 import { useState, useRef, type ReactNode, type CSSProperties } from 'react';
 import { PUBLIC_LINKS } from './config/publicLinks';
 
@@ -63,6 +64,7 @@ function Flow({ kind, title, nodes }: { kind: string; title: string; nodes: [str
 }
 
 export default function App() {
+  usePageMotion();
   const [menu, setMenu] = useState(false);
   const [layer, setLayer] = useState('Interface');
   const nav = [['Try NEXA', 'demo'], ['Architecture', 'architecture'], ['Engineering', 'case-study'], ['FAQ', 'faq']];

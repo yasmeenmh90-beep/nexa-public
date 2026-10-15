@@ -304,3 +304,65 @@ footer p{font-size:10px;margin:15px 0 0}
  .demo-top>button{min-height:44px}
  .nav nav a{display:flex;align-items:center;min-height:32px}
 }
+
+
+/* Coordinated decorative motion: entrances, scroll reveals and light feedback. */
+.nav:after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:linear-gradient(90deg,#8f69c5,#d1b7ff,#b5def7);transform:scaleX(var(--page-progress,0));transform-origin:left;pointer-events:none}
+.nav nav>a{position:relative}
+.nav nav>a:after{content:"";position:absolute;bottom:-7px;left:0;right:0;height:1px;background:#c4b5fd;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+.nav nav>a:hover:after,.nav nav>a:focus-visible:after{transform:scaleX(1)}
+.hero{position:relative;isolation:isolate}
+.hero:before{content:"";position:absolute;z-index:-1;inset:0 -8%;background:radial-gradient(ellipse at 78% 45%,#8e5ec522,transparent 57%);pointer-events:none;animation:nexa-ambient-drift 12s ease-in-out infinite alternate}
+.hero-copy>.eyebrow,.hero-copy>h1,.hero-copy>.hero-subtitle,.hero-copy>.lead,.hero-copy>.buttons,.hero-copy>.hero-capabilities,.hero-copy>.hero-builder{animation:nexa-enter .7s cubic-bezier(.2,.65,.3,1) both}
+.hero-copy>.eyebrow{animation-delay:.03s}
+.hero-copy>h1{animation-delay:.1s}
+.hero-copy>.hero-subtitle{animation-delay:.18s}
+.hero-copy>.lead{animation-delay:.24s}
+.hero-copy>.buttons{animation-delay:.3s}
+.hero-copy>.hero-capabilities{animation-delay:.36s}
+.hero-copy>.hero-builder{animation-delay:.42s}
+.hero-art{animation:nexa-studio-enter .95s cubic-bezier(.2,.65,.3,1) .12s both}
+.hero-art .nexa-aura{opacity:.45;animation:nexa-ambient-breathe 8s ease-in-out infinite}
+[data-reveal]{transition:opacity .65s cubic-bezier(.2,.65,.3,1),transform .65s cubic-bezier(.2,.65,.3,1);transition-delay:var(--reveal-delay,0ms)}
+[data-reveal]:not(.is-revealed){opacity:0;transform:translateY(22px)}
+[data-reveal].is-revealed{opacity:1;transform:translateY(0)}
+[data-reveal]:focus-within{opacity:1;transform:none;transition-delay:0ms}
+.card,.roadmap-grid article,.flow-nodes li,.about-panel{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.card:hover,.roadmap-grid article:hover{transform:translateY(-4px);border-color:#c4b5fd55;box-shadow:0 12px 28px #0002}
+.flow-nodes li:hover{transform:translateY(-2px);border-color:#c4b5fd66}
+.flow-nodes li:not(:last-child):after{animation:nexa-path-cue 3s ease-in-out infinite}
+.flow-nodes li:nth-child(2):after{animation-delay:.35s}
+.flow-nodes li:nth-child(3):after{animation-delay:.7s}
+.mode-switch button,.voice-control,.copy-answer,.quick-actions button,.suggested-questions button,.nav-cta{transition:background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease}
+.mode-switch button[aria-pressed=true]{box-shadow:0 2px 12px #ad80e312}
+.suggested-questions button:hover,.quick-actions button:hover,.copy-answer:hover{box-shadow:0 0 0 2px #a78bfa0a}
+.button.primary{position:relative;overflow:hidden}
+.button.primary:before{content:"";position:absolute;inset:-50% auto -50% -50%;width:25%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,#ffffff30,transparent);transition:left .55s ease;pointer-events:none}
+.button.primary:hover:before,.button.primary:focus-visible:before{left:130%}
+.faq details[open]>p,.technical-details[open]>.layers,.technical-details[open]>.layer-detail,.history-details[open]>p,.voice-options[open]>div,.gallery-details[open]>.screenshot-grid{animation:nexa-panel-enter .3s ease both}
+.faq summary>span,.technical-details summary>span,.voice-options summary>span{transition:transform .2s ease}
+.voice-options[open] summary>span{transform:rotate(45deg)}
+.screenshot-grid button img{transition:transform .4s ease,filter .4s ease}
+.screenshot-grid button:hover img{transform:scale(1.012);filter:brightness(1.06)}
+.about-links a,.text-link,.studio-bottom a{transition:color .2s ease}
+.about-links a:hover,.text-link:hover,.studio-bottom a:hover{color:#ebdcff}
+@keyframes nexa-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes nexa-studio-enter{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes nexa-panel-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes nexa-ambient-drift{from{opacity:.5;transform:translate(-2%,-1%)}to{opacity:1;transform:translate(2%,1%)}}
+@keyframes nexa-ambient-breathe{0%,100%{opacity:.3}50%{opacity:.6}}
+@keyframes nexa-path-cue{0%,100%{opacity:.45}45%{opacity:1}}
+@media(hover:none){.card:hover,.roadmap-grid article:hover,.flow-nodes li:hover{transform:none;box-shadow:none}.screenshot-grid button:hover img{transform:none}}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;transition:none!important}
+ [data-reveal],[data-reveal]:not(.is-revealed){opacity:1;transform:none}
+ .hero-art,.hero-copy>*{opacity:1;transform:none}
+ .hero:before{opacity:.6;transform:none}
+ .card:hover,.roadmap-grid article:hover,.flow-nodes li:hover,.screenshot-grid button:hover img{transform:none}
+}
+
+.bubble{animation:nexa-panel-enter .24s ease both}
+.nav nav.open{animation:nexa-panel-enter .2s ease both}
+.card[data-reveal],.roadmap-grid article[data-reveal],.about-panel[data-reveal]{transition-property:opacity,transform,border-color,box-shadow}
+[data-reveal].is-revealed:hover{transition-delay:0ms}
+@media(prefers-reduced-motion:reduce){.bubble,.nav nav.open{animation:none!important}}

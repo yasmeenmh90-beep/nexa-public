@@ -13,3 +13,17 @@
 @media(max-width:600px){.hero{grid-template-columns:1fr;padding:40px 20px 35px;gap:10px}.hero h1{font-size:76px}.hero h1 span{font-size:33px}.hero .hero-subtitle{font-size:18px}.hero-art .portrait-state{left:34%;bottom:17%;padding:9px;font-size:8px}.hero-art .portrait-state small{font-size:7px}.float-card{max-width:205px;bottom:0}.layers{grid-template-columns:1fr 1fr;padding:16px 16px 0}.layers button{font-size:11px;min-height:95px;padding:13px}.layer-detail{min-height:205px}.skills-grid,.engineering-list{grid-template-columns:1fr}.screenshot-grid{grid-template-columns:1fr}.screenshot-grid img{height:240px}.demo-disclosure{font-size:11px;padding:14px}.demo{gap:18px}.stack-strip{gap:15px 22px}.stack-strip strong:last-child{font-size:11px}}
 
 .portrait img{width:auto;flex-shrink:0}.video-proof{margin:25px 0;border:1px solid var(--border);border-radius:12px;padding:16px}.video-proof video{display:block;width:100%;max-height:600px}.video-proof figcaption{font-size:11px;color:var(--muted);margin-top:12px}.card code{font-size:12px;color:#c4b5fd;display:block;padding:12px 0;overflow-wrap:anywhere}
+
+/* Keep mobile navigation readable over page content. */
+@media (max-width: 850px) {
+  .nav {
+    background: #050610;
+  }
+
+  .nav nav {
+    background: #090b1d;
+    opacity: 1;
+    border-bottom: 1px solid #c4b5fd40;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45);
+  }
+}

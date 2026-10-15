@@ -192,210 +192,64 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
     .reverse()
     .find((message) => message.role !== "You");
 
-  return (
-    <div>
-      <div className="buttons" aria-label="Chat mode">
-        <button
-          type="button"
-          className="button"
-          aria-pressed={mode === "sample"}
-          onClick={() => { reset(); setMode("sample"); }}
-        >
-          Sample Demo
-        </button>
-        <button
-          type="button"
-          className="button"
-          aria-pressed={mode === "live"}
-          onClick={() => { reset(); setMode("live"); }}
-        >
-          Live AI
-        </button>
-      </div>
+  const prompts = messages.length
+    ? ["Explain that more simply.", "Give me a practical example."]
+    : suggestions;
 
+  return (
+    <div className="demo-shell">
+      <div className="demo-heading">
+        <div className="mode-switch" role="group" aria-label="Chat mode">
+          <button type="button" aria-pressed={mode === "sample"} onClick={() => { reset(); setMode("sample"); }}>Sample Demo</button>
+          <button type="button" aria-pressed={mode === "live"} onClick={() => { reset(); setMode("live"); }}>Live AI <span>✦</span></button>
+        </div>
+        <span className={`chat-status status-${state}`}><i aria-hidden="true"/>{state === "idle" ? "Ready to chat" : state === "listening" ? "Listening" : state === "thinking" ? "Preparing an answer" : "Speaking"}</span>
+      </div>
       <p className="demo-disclosure">
         {mode === "sample"
-          ? "Sample mode uses fictional, predefined answers. No OpenAI request is made."
-          : "Live AI sends your message and up to three recent completed exchanges to OpenAI for follow-up questions. Answers may be inaccurate. Reset or switch modes to clear this context; refreshing clears the chat."}
-        {" "}Neither mode connects to personal accounts or private n8n workflows.
+          ? "A preview with fictional, predefined answers. Try a task below."
+          : "Ask a general question and follow up. Your message and up to three recent exchanges go to OpenAI. AI can be inaccurate."}
+        {" "}Personal accounts are not connected.
       </p>
-
       <div className="demo">
         <div className="demo-character">
+          <p className="portrait-eyebrow">NEXA / YOUR CONVERSATION SPACE</p>
           {renderPortrait(state)}
-          <p role="status" className="caption">
-            {voice.listening
-              ? "Listening… Speak your request."
-              : voice.speaking
-                ? "NEXA is reading the answer."
-                : busy
-                  ? "Preparing an answer…"
-                  : "Ready. Type or use the microphone."}
+          <p role="status" className="character-status">
+            {voice.listening ? "I’m listening. Review your words, then Send."
+              : voice.speaking ? "Reading your answer aloud."
+              : busy ? "A little thinking time…"
+              : "Type it. Say it. Let’s explore it."}
           </p>
-          <p className="caption">
-            Voice input may use your browser provider’s speech service.
-            Review the recognized text, then press Send.
-            The animated halo indicates playback. Precise lip sync is deferred.
-          </p>
+          <div className="character-tags"><span>Text & voice</span><span>{mode === "sample" ? "Fictional samples" : "General AI answers"}</span></div>
         </div>
-
         <div className="demo-chat">
-          <div className="demo-top">
-            <span>{mode === "sample" ? "SAMPLE DEMO" : "LIVE AI CHAT"}</span>
-            <button type="button" onClick={reset}>Reset</button>
+          <div className="demo-top"><div><span>{mode === "sample" ? "EXPLORE THE POSSIBILITIES" : "A LITTLE CLARITY STARTS HERE"}</span><h3>{mode === "sample" ? "What’s on your radar?" : "What’s on your mind?"}</h3></div><button type="button" onClick={reset}>Reset chat ↺</button></div>
+          <div ref={log} className={`conversation ${messages.length ? "" : "conversation-empty"}`} role="log" aria-label="NEXA conversation" aria-live="polite">
+            {!messages.length && <div className="welcome"><span aria-hidden="true">✦</span><h3>Hi, I’m NEXA.</h3><p>{mode === "sample" ? "Choose a task to preview an everyday workflow." : "Bring a question, an idea, or something you’re curious about."}</p></div>}
+            {messages.map((message, index) => <div key={index} className={`bubble ${message.role === "You" ? "user" : ""}`}><small>{message.role}</small><p>{message.text}</p>{message.role !== "You" && <button type="button" className="copy-answer" aria-label={`Copy NEXA answer ${index + 1}`} onClick={() => void copyAnswer(message.text, index)}>{copied === index ? "Copied ✓" : "Copy answer"}</button>}</div>)}
+            {busy && <p className="processing"><span aria-hidden="true">•••</span> Preparing an answer</p>}
           </div>
-
-          <div
-            ref={log}
-            className="conversation"
-            role="log"
-            aria-label="NEXA conversation"
-            aria-live="polite"
-          >
-            {!messages.length && (
-              <div className="welcome">
-                <h3>Hi, I’m NEXA.</h3>
-                <p>Choose a sample action or ask a question in Live AI mode.</p>
-              </div>
-            )}
-
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`bubble ${message.role === "You" ? "user" : ""}`}
-              >
-                <small>{message.role}</small>
-                <p>{message.text}</p>
-                {message.role !== "You" && <button type="button" className="copy-answer" aria-label={`Copy NEXA answer ${index + 1}`} onClick={() => void copyAnswer(message.text, index)}>{copied === index ? "Copied" : "Copy answer"}</button>}
-              </div>
-            ))}
-
-            {busy && <p className="processing">Preparing an answer…</p>}
-          </div>
-
           <p className="copy-notice" role="status">{copyNotice}</p>
-
-          {mode === "live" && <div className="suggested-questions" aria-label="Suggested questions">
-            <p>Try a question</p>
-            <div>{suggestions.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div>
-            <small>Choose a question, then press Send. You can edit it first.</small>
-          </div>}
-
-          {mode === "sample" && (
-            <div className="quick-actions">
-              {Object.keys(samples).map((action) => (
-                <button
-                  type="button"
-                  key={action}
-                  disabled={busy || voice.listening}
-                  onClick={() => void send(action)}
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="buttons">
-            <label>
-              Voice language{" "}
-              <select
-                value={language}
-                disabled={busy || voice.listening || voice.speaking}
-                onChange={(event) => setLanguage(event.target.value)}
-                style={{ background: "#090b1d", color: "#ede9fe" }}
-              >
-                <option value="en-US">English</option>
-                <option value="ur-PK">Urdu</option>
-                <option value="fr-FR">French</option>
-              </select>
-            </label>
-
-            <button
-              type="button"
-              className="button"
-              disabled={busy || !voice.canListen}
-              onClick={() =>
-                voice.listening
-                  ? voice.stopListening()
-                  : voice.startListening(language)
-              }
-            >
-              {voice.listening ? "Stop microphone" : "Microphone"}
-            </button>
-
-            <button
-              type="button"
-              className="button"
-              disabled={!voice.canSpeak}
-              aria-pressed={sound}
-              onClick={() => {
-                if (sound) voice.stopSpeaking();
-                setSound(!sound);
-              }}
-            >
-              Spoken replies: {sound ? "On" : "Off"}
-            </button>
-
-            <button
-              type="button"
-              className="button"
-              disabled={!lastReply || !voice.canSpeak || busy || voice.listening}
-              onClick={() => lastReply && voice.speak(lastReply.text, language)}
-            >
-              Read aloud
-            </button>
-
-            <button
-              type="button"
-              className="button"
-              disabled={!voice.speaking}
-              onClick={voice.stopSpeaking}
-            >
-              Stop speaking
-            </button>
-          </div>
-
-          {!voice.canListen && (
-            <p className="caption">
-              Voice input is unavailable in this browser. Please type instead.
-            </p>
-          )}
-
-          <form onSubmit={(event) => {
-            event.preventDefault();
-            void send(text);
-          }}>
-            <label className="sr-only" htmlFor="voice-message">
-              Message NEXA
-            </label>
-            <input
-              id="voice-message"
-              ref={input}
-              value={text}
-              maxLength={1500}
-              onChange={(event) => setText(event.target.value)}
-              placeholder="Type or dictate your question…"
-            />
-            <button
-              type="submit"
-              disabled={busy || voice.listening || !text.trim()}
-              aria-label="Send message"
-            >
-              ↑
-            </button>
+          {mode === "sample"
+            ? <div className="quick-actions" aria-label="Sample tasks">{Object.keys(samples).map(action => <button type="button" key={action} disabled={busy || voice.listening} onClick={() => void send(action)}>{action}<span aria-hidden="true">↗</span></button>)}</div>
+            : <div className="suggested-questions" aria-label="Suggested questions"><p>{messages.length ? "Keep exploring" : "A few places to start"}</p><div>{prompts.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div></div>}
+          <form onSubmit={event => { event.preventDefault(); void send(text); }}>
+            <label className="sr-only" htmlFor="voice-message">Message NEXA</label>
+            <input id="voice-message" ref={input} value={text} maxLength={1500} onChange={event => setText(event.target.value)} placeholder={mode === "sample" ? "Try “Daily briefing”…" : "Ask anything you’re curious about…"}/>
+            <button type="submit" disabled={busy || voice.listening || !text.trim()} aria-label="Send message">↑</button>
           </form>
-
-          <div className="chat-feedback">
-            <span>Help improve NEXA</span>
-            <a href={feedbackUrl("NEXA: report a problem")} target="_blank" rel="noopener noreferrer">Report a problem ↗</a>
-            <a href={feedbackUrl("NEXA: feature suggestion")} target="_blank" rel="noopener noreferrer">Suggest a feature ↗</a>
-            <small>Opens GitHub. An account is required to submit; issues are public.</small>
+          <div className="voice-toolbar" aria-label="Voice controls">
+            <button type="button" className={`voice-control ${voice.listening ? "active" : ""}`} disabled={busy || !voice.canListen} onClick={() => voice.listening ? voice.stopListening() : voice.startListening(language)}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg>{voice.listening ? "Stop microphone" : "Microphone"}</button>
+            <button type="button" className="voice-control" disabled={!voice.canSpeak} aria-pressed={sound} onClick={() => { if (sound) voice.stopSpeaking(); setSound(!sound); }}>Spoken replies <span className={sound ? "toggle-on" : "toggle-off"}>{sound ? "On" : "Off"}</span></button>
+            {voice.speaking
+              ? <button type="button" className="voice-control playback-control" onClick={voice.stopSpeaking}>■ Stop speaking</button>
+              : <button type="button" className="voice-control playback-control" disabled={!lastReply || !voice.canSpeak || busy || voice.listening} onClick={() => lastReply && voice.speak(lastReply.text, language)}>▷ Read aloud</button>}
           </div>
-
-          {(error || voice.voiceError) && (
-            <p role="alert">{error || voice.voiceError}</p>
-          )}
+          <details className="voice-options"><summary>Voice settings & privacy <span>+</span></summary><div><label htmlFor="voice-language">Voice language</label><select id="voice-language" value={language} disabled={busy || voice.listening || voice.speaking} onChange={event => setLanguage(event.target.value)}><option value="en-US">English</option><option value="ur-PK">Urdu</option><option value="fr-FR">French</option></select><p>Voice input may use your browser provider’s speech service. Review dictated text before Send. The portrait’s halo indicates playback; precise lip sync is deferred.</p><p>Reset, switch modes or refresh to clear this app’s conversation context.</p></div></details>
+          {!voice.canListen && <p className="caption">Voice input is unavailable in this browser. You can still type.</p>}
+          {(error || voice.voiceError) && <p role="alert" className="chat-error">{error || voice.voiceError}</p>}
+          <div className="chat-feedback"><span>Make NEXA better.</span><a href={feedbackUrl("NEXA: report a problem")} target="_blank" rel="noopener noreferrer">Report a problem ↗</a><a href={feedbackUrl("NEXA: feature suggestion")} target="_blank" rel="noopener noreferrer">Suggest a feature ↗</a><small>Public GitHub feedback · account required to submit</small></div>
         </div>
       </div>
     </div>

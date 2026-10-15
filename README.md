@@ -92,3 +92,12 @@ The owner reports successful microphone transcription, Live AI answers and spoke
 The screenshot gallery documents an earlier dashboard prototype, not every feature of the current release. Historical source-recovery and n8n verification claims are attributed to the owner.
 
 Remaining: complete current mobile/tablet and accessibility review; verify account spending controls; review dependencies; record a clean walkthrough. Private authentication, personal-service integration and precise lip sync remain separate future work. No complete security audit is claimed.
+
+
+## Final visual refinement
+
+The public page now puts the conversation first: an editorial hero, three use cases, a compact chat studio, separate connected Sample and Live AI paths, and shorter engineering/privacy sections. Earlier prototype screenshots remain available in a collapsible gallery with working lightboxes.
+
+Voice settings are grouped into an expandable panel. Microphone, spoken-reply toggle and Read aloud/Stop speaking remain directly available. Suggested questions become short follow-up prompts after the conversation starts. The existing avatar, speech lifecycle, copy controls, feedback links and bounded context are retained.
+
+Validation for this update: TypeScript compilation, a Vite production bundle, seven mocked backend tests, and static rendered-HTML checks. Browser preview was unavailable in the editing environment; real mobile, clipboard, microphone and accessibility interactions still need device review. No new dependencies or API integrations were added.

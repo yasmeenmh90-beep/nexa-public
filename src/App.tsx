@@ -1,4 +1,5 @@
 import VoiceChat from './components/VoiceChat';
+import SpeakingPortrait, { type SpeechMotion } from './components/SpeakingPortrait';
 import { useState, useRef, type ReactNode } from 'react';
 import { PUBLIC_LINKS } from './config/publicLinks';
 const portfolio=PUBLIC_LINKS.portfolio;const github=PUBLIC_LINKS.repository??PUBLIC_LINKS.githubProfile;const linkedin=PUBLIC_LINKS.linkedin;
@@ -6,7 +7,7 @@ const states=['idle','listening','thinking','speaking'] as const;
 type State=typeof states[number];
 function Section({id,kicker,title,children}:{id:string;kicker:string;title:string;children:ReactNode}){return <section id={id} className="section"><div className="section-heading"><p className="eyebrow">{kicker}</p><h2>{title}</h2></div>{children}</section>}
 function Tag({children}:{children:ReactNode}){return <span className="tag">{children}</span>}
-function Portrait({state='idle'}:{state?:State}){
+function Portrait({state='idle',motion}:{state?:State;motion?:SpeechMotion}){
  const speaking=state==='speaking';
  return <div className={`portrait ${state}`}>
   <div className="orbit" aria-hidden="true"/>
@@ -15,7 +16,7 @@ function Portrait({state='idle'}:{state?:State}){
    <circle className="nexa-halo-track" cx="150" cy="150" r="124"/>
    {Array.from({length:48},(_,index)=><g key={index} transform={`rotate(${index*7.5} 150 150)`}><rect className="nexa-halo-bar" x="148" y="9" width="4" height={10+(index%5)*3} rx="2" style={{animationDelay:`-${(index%9)*0.13}s`,animationDuration:`${0.65+(index%4)*0.12}s`}}/></g>)}
   </svg>
-  <img className="nexa-character" src="/avatar/nexa-studio-dashboard.png" width="291" height="313" alt="NEXA wearing a lavender hijab, purple headphones and silver NEXA armor"/>
+  <SpeakingPortrait speaking={speaking} motion={motion}/>
   <div className="nexa-voice-wave" aria-hidden="true">{Array.from({length:13},(_,index)=><span key={index} style={{animationDelay:`-${index*0.11}s`,height:`${8+(6-Math.abs(6-index))*3}px`}}/>)}</div>
   <span className="portrait-state"><i/>{state.toUpperCase()} <small>{speaking?'VOICE PLAYING':'NEXA'}</small></span>
  </div>
@@ -85,7 +86,7 @@ export default function App(){
 >
   <VoiceChat
     samples={samples}
-    renderPortrait={(state) => <Portrait state={state} />}
+    renderPortrait={(state, motion) => <Portrait state={state} motion={motion} />}
   />
 </Section>
  <Section id="states" kicker="06 / INTERACTION LANGUAGE" title="An assistant that communicates its state."><div className="grid four">{[['Idle','Ready when you are. A subtle ambient glow.'],['Listening','A simulated input cue. No recording occurs.'],['Thinking','A visual processing indicator, not proof of a live model.'],['Speaking','A response state with captions. No audio or lip-sync.']].map(([t,d],i)=><article className="card" key={t}><div className={'state-icon '+states[i]}>✦</div><h3>{t}</h3><p>{d}</p></article>)}</div></Section>

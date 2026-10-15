@@ -30,18 +30,32 @@ export function useVoice(onTranscript: (text: string) => void) {
 
   const recognition = useRef<Recognition | null>(null);
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
+  const listenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transcriptHandler = useRef(onTranscript);
+
   transcriptHandler.current = onTranscript;
+
+  function clearListenTimer() {
+    if (listenTimer.current !== null) {
+      clearTimeout(listenTimer.current);
+      listenTimer.current = null;
+    }
+  }
 
   useEffect(() => {
     const browser = window as VoiceWindow;
+
     setCanListen(
       Boolean(browser.SpeechRecognition || browser.webkitSpeechRecognition),
     );
     setCanSpeak("speechSynthesis" in window);
 
     return () => {
+      clearListenTimer();
+
       const current = recognition.current;
+      recognition.current = null;
+
       if (current) {
         current.onstart = null;
         current.onend = null;
@@ -50,9 +64,13 @@ export function useVoice(onTranscript: (text: string) => void) {
         current.abort();
       }
 
-      if (utterance.current) {
-        utterance.current.onend = null;
-        utterance.current.onerror = null;
+      const speech = utterance.current;
+      utterance.current = null;
+
+      if (speech) {
+        speech.onstart = null;
+        speech.onend = null;
+        speech.onerror = null;
       }
 
       window.speechSynthesis?.cancel();
@@ -60,10 +78,13 @@ export function useVoice(onTranscript: (text: string) => void) {
   }, []);
 
   function stopSpeaking() {
-    if (utterance.current) {
-      utterance.current.onend = null;
-      utterance.current.onerror = null;
-      utterance.current = null;
+    const current = utterance.current;
+    utterance.current = null;
+
+    if (current) {
+      current.onstart = null;
+      current.onend = null;
+      current.onerror = null;
     }
 
     window.speechSynthesis?.cancel();
@@ -71,6 +92,8 @@ export function useVoice(onTranscript: (text: string) => void) {
   }
 
   function stopListening() {
+    clearListenTimer();
+
     const current = recognition.current;
     recognition.current = null;
 
@@ -102,35 +125,87 @@ export function useVoice(onTranscript: (text: string) => void) {
 
     const current = new Constructor();
     recognition.current = current;
+
+    let receivedText = false;
+
     current.lang = language;
     current.continuous = false;
-    current.interimResults = false;
+    current.interimResults = true;
 
     current.onstart = () => {
-      if (recognition.current === current) setListening(true);
+      if (recognition.current !== current) return;
+
+      setListening(true);
+      clearListenTimer();
+
+      // Prevent the interface remaining in listening mode indefinitely.
+      listenTimer.current = setTimeout(() => {
+        if (recognition.current !== current) return;
+
+        stopListening();
+
+        if (!receivedText) {
+          setVoiceError(
+            "No speech transcript was received. Check your microphone, selected language and browser speech-recognition support, then try again.",
+          );
+        }
+      }, 20000);
     };
 
     current.onresult = (event) => {
       if (recognition.current !== current) return;
-      const text = event.results[0]?.[0]?.transcript?.trim();
-      if (text) transcriptHandler.current(text.slice(0, 1500));
+
+      const text = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+
+      if (text) {
+        receivedText = true;
+        setVoiceError("");
+        transcriptHandler.current(text.slice(0, 1500));
+      }
     };
 
     current.onerror = (event) => {
       if (recognition.current !== current) return;
 
-      setVoiceError(
-        event.error === "not-allowed"
-          ? "Microphone access was denied. Allow it in browser settings or type."
-          : "Speech could not be recognized. Please try again or type.",
-      );
+      const errors: Record<string, string> = {
+        "not-allowed":
+          "Microphone or speech-recognition access was denied. Check browser permissions or type instead.",
+        "service-not-allowed":
+          "The browser’s speech-recognition service is unavailable or blocked. Try another supported browser.",
+        "audio-capture":
+          "No working microphone was found. Check your microphone settings.",
+        "no-speech":
+          "No speech was detected. Move closer to the microphone and try again.",
+        network:
+          "The speech-recognition service could not connect. Check your connection or try another browser.",
+        "language-not-supported":
+          "The selected voice language is unsupported in this browser. Try English or type instead.",
+      };
+
       stopListening();
+
+      if (event.error !== "aborted") {
+        setVoiceError(
+          errors[event.error] ||
+            `Speech recognition failed (${event.error}). Please try again or type.`,
+        );
+      }
     };
 
     current.onend = () => {
-      if (recognition.current === current) {
-        recognition.current = null;
-        setListening(false);
+      if (recognition.current !== current) return;
+
+      clearListenTimer();
+      recognition.current = null;
+      setListening(false);
+
+      if (!receivedText) {
+        setVoiceError(
+          "Listening ended without recognized words. Check the selected language and microphone, or try another browser.",
+        );
       }
     };
 
@@ -148,9 +223,11 @@ export function useVoice(onTranscript: (text: string) => void) {
     setVoiceError("");
 
     if (!("speechSynthesis" in window)) {
-      setVoiceError("Spoken replies are unavailable. Read the answer below.");
+      setVoiceError("Spoken replies are unavailable. Read the written answer.");
       return;
     }
+
+    if (!text.trim()) return;
 
     const current = new SpeechSynthesisUtterance(text.slice(0, 4000));
     utterance.current = current;
@@ -158,7 +235,9 @@ export function useVoice(onTranscript: (text: string) => void) {
     current.rate = 1;
 
     current.onstart = () => {
-      if (utterance.current === current) setSpeaking(true);
+      if (utterance.current === current) {
+        setSpeaking(true);
+      }
     };
 
     current.onend = () => {

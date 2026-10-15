@@ -181,7 +181,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           <p className="caption">
             Voice input may use your browser provider’s speech service.
             Review the recognized text, then press Send.
-            The portrait has no lip-sync.
+            The animated halo indicates speech playback; mouth movements are not lip-synced.
           </p>
         </div>
 

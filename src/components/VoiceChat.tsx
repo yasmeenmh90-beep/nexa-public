@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useVoice } from "../hooks/useVoice";
-import type { SpeechMotion } from "./SpeakingPortrait";
 
 type State = "idle" | "listening" | "thinking" | "speaking";
 type Message = { role: string; text: string };
 
 type Props = {
   samples: Record<string, string>;
-  renderPortrait: (state: State, motion?: SpeechMotion) => ReactNode;
+  renderPortrait: (state: State) => ReactNode;
 };
 
 export default function VoiceChat({ samples, renderPortrait }: Props) {
@@ -169,7 +168,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
 
       <div className="demo">
         <div className="demo-character">
-          {renderPortrait(state, voice.speechMotion)}
+          {renderPortrait(state)}
           <p role="status" className="caption">
             {voice.listening
               ? "Listening… Speak your request."
@@ -182,7 +181,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           <p className="caption">
             Voice input may use your browser provider’s speech service.
             Review the recognized text, then press Send.
-            Mouth animation approximates speech timing. It is not precise lip-sync.
+            The animated halo indicates playback. Precise lip sync is deferred.
           </p>
         </div>
 

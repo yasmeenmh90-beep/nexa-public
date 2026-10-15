@@ -1,86 +1,88 @@
-# NEXA — Public Engineering Case Study
+# NEXA — Public AI Engineering Case Study
 
-Independent React/TypeScript/Vite/Tailwind project for Yasmeen Azmat Ali's portfolio. This does not edit or invoke the private assistant or any n8n workflows.
+Public website: https://nexa-public.netlify.app  
+Source: https://github.com/yasmeenmh90-beep/nexa-public
 
-## Start locally
+A React/TypeScript/Vite/Tailwind showcase by Yasmeen Azmat Ali. This public application is separate from the private NEXA assistant and its n8n workflows.
+
+## What works
+
+- **Sample Demo:** six fictional local task summaries; no OpenAI request.
+- **Live AI:** one submitted question at a time, sent through a Netlify Function to the OpenAI Responses API. Earlier conversation messages are not sent.
+- **Voice:** supported browsers can transcribe microphone input and read replies aloud. Review dictated text, then press Send.
+- **Speaking feedback:** a glowing halo, animated bars and subtle portrait movement. Precise lip sync is deferred; the experimental mouth deformation has been removed.
+- Responsive navigation, architecture cards, FAQ and screenshot lightboxes.
+
+Neither mode accesses email, calendars, private repositories, personal memory or n8n. Live answers may be inaccurate. Voice availability and voices depend on the browser; recognition may use its provider’s speech service.
+
+## Local development
+
+Use Node.js 22 and a clean dependency installation:
 
 ```bash
-npm install
+npm ci
 npm run dev
-```
-
-Open the Local URL printed by Vite. To verify and build:
-
-```bash
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 
-## Publish
+Vite alone serves the frontend and Sample Demo. The /api/chat endpoint runs as a Netlify Function; use the deployed site or a properly configured Netlify development environment for Live AI.
 
-Upload only dist/ to Netlify Drop (https://app.netlify.com/drop). For Git hosting, use a NEW repository and deployment: build command npm run build, publish directory dist. Do not merge this source into the private assistant repository.
+## Deployment
 
-After obtaining the actual public site URL, configure SEO metadata and rebuild:
+This repository is connected to Netlify. A commit to the production branch triggers a build using netlify.toml:
+
+- Build: npm run build
+- Publish: dist
+- Functions: netlify/functions
+
+Batch related edits into one commit to avoid unnecessary production builds. Do not deploy source folders or node_modules with Netlify Drop; a frontend-only dist upload does not set up the server function.
+
+Set these environment variables in Netlify, never in browser code or public files:
+
+| Name | Purpose |
+| --- | --- |
+| OPENAI_API_KEY | Server-side OpenAI project API key |
+| NEXA_LIVE_CHAT_ENABLED | Set to true to enable Live AI; any other value disables it |
+
+Environment changes must reach the deployed function. Do not paste keys into issues, screenshots or the repository.
+
+## Request controls and costs
+
+The function currently accepts POST JSON requests from the configured public origin, validates a 1–1500 character message, limits the request body to 8000 bytes, uses a 20-second upstream timeout, and requests at most 400 output tokens from gpt-4.1-mini. Its Netlify rate-limit configuration is 5 requests per 60 seconds for each IP/domain grouping.
+
+Origin checks are not authentication. Per-IP throttling is not a global spending cap. Check the actual Netlify and OpenAI account usage controls separately; this repository cannot verify account budgets or guarantee a maximum bill. Netlify deployment usage and OpenAI API usage are separate.
+
+To disable Live AI, set NEXA_LIVE_CHAT_ENABLED to false and deploy that change. Sample Demo remains available.
+
+## Metadata and links
+
+Canonical URL, Open Graph image URL, robots.txt and sitemap.xml target https://nexa-public.netlify.app.
+
+If the hostname changes:
 
 ```bash
-npm run set-site-url -- https://YOUR-ACTUAL-PUBLIC-HOSTNAME
+npm run set-site-url -- https://YOUR-FINAL-PUBLIC-HOSTNAME
 npm run build
 ```
 
-Replace the example hostname with your final URL. This writes canonical/Open Graph URL/image metadata, sitemap.xml and the robots sitemap reference. Until then the site has title, description, Open Graph title/description/type and an indexable robots.txt, but no invented canonical URL or sitemap.
+Update the permitted request origin in netlify/functions/chat.mjs as well.
 
-## Portfolio entry
+Public links live in src/config/publicLinks.ts. A booking link and video are optional. Only add a sanitized recording containing public demonstration content.
 
-Title: NEXA — Personal AI Operations Assistant | Agentic AI & Workflow Orchestration
+## Project structure
 
-Link the deployed public showcase under Featured Projects on https://yasmeenazmat.com. Suggested description: A personal AI operations assistant project with a responsive conversational frontend, four visual avatar states, a separate n8n workflow foundation and a planned secure private integration. Explore the engineering case study and fictional sample demo.
+- src/App.tsx — page content, architecture, portrait and gallery.
+- src/components/VoiceChat.tsx — sample/live chat, voice controls and request cancellation.
+- src/hooks/useVoice.ts — browser speech recognition and synthesis lifecycle.
+- src/styles.css — layout, speaking effects, mobile and reduced-motion styles.
+- netlify/functions/chat.mjs — server-side OpenAI request handling.
+- scripts/set-site-url.mjs — deployment metadata configuration.
 
-## Scope and assets
+## Validation and remaining work
 
-- Original hijab-wearing character reused. No replacement character or generated mockup.
-- Reference-derived portrait crop is small and may look soft on large screens. The original high-resolution nexa-main.png is retained for identity/social imagery.
-- Actual Chromium screenshots of the existing prototype are used in the gallery. They show sample content and the public professional display name; there is no inbox/calendar/account data.
-- No video link was supplied, so no nonfunctional Watch Demo button is present.
-- Demo chat is deterministic local sample data. State selectors are visual cues only; no microphone recording, speech recognition, audio playback or lip-sync.
-- No external font/CDN requests, analytics, credentials, private exports, n8n URLs, API calls or login fields.
-- Portfolio, GitHub and LinkedIn links use supplied public URLs. Contact leads to LinkedIn; no invented email address or portfolio contact route.
-- Reported historical recovery/specialist verification is attributed to the owner; this site does not reverify the live workflows or claim deployed security.
+The owner reports successful microphone transcription, Live AI answers and spoken-reply tests on the deployed site. TypeScript checks passed during the cleanup. Earlier Netlify releases built and deployed; a new production build is validated by the next Netlify deployment.
 
-## Components and content
+The screenshot gallery documents an earlier dashboard prototype, not every feature of the current release. Historical source-recovery and n8n verification claims are attributed to the owner.
 
-src/App.tsx: reusable Section, Tag, Portrait and ScreenshotGallery components; interactive public demo, architecture layer selector, mobile navigation and native FAQ accordions.
-src/styles.css: design system, portrait masks, responsive grids and reduced-motion support.
-scripts/set-site-url.mjs: deployment metadata configuration.
-
-Sections cover navigation, cinematic hero, problem, solution, capabilities, interface gallery, demo, four states, architecture, request lifecycle, privacy, engineering case study, stack, development journey, roadmap, public/private comparison, builder, FAQ and final CTA/footer.
-
-## Verification limits
-
-TypeScript validation and Vite production build were run successfully for this new site. Static checks validated referenced public assets and prohibited private-API patterns. Browser/responsive/accessibility interaction testing of this NEW case-study site was not run: the supported managed browser capability is unavailable. Prior assistant screenshots are actual earlier browser results, not evidence that this new site has been browser-tested.
-
-Hosted publication was not completed because the Sites publishing helper is unavailable in this environment. This source ZIP and dist/ are ready for manual deployment. Complete browser/device review before treating it as production-verified.
-
-## Portfolio refinement (13 October 2026)
-
-Updated in place; original character, layout structure and useful interactions retained.
-- Editorial hero now names NEXA — Personal AI Operations Assistant with the requested supporting line and demo/architecture/GitHub actions.
-- Eight capability cards include restricted memory and future approval/action scope. No private memory or write workflows are enabled.
-- Simulated response lifecycle: thinking → speaking → idle; reset cancels timers; local chat auto-scrolls with reduced-motion support.
-- Six clickable architecture nodes describe interface, request handling, orchestration, specialists, services and response. The public data path remains isolated.
-- Timeline retains six requested milestones. Added recruiter-facing skills, engineering decision details and reproducible validation evidence.
-- Screenshot lightboxes include actual prior login, desktop/mobile prototype, supplied visual-state and earlier architecture views. These are not screenshots of the updated release.
-- Responsive grid refinements, explicit avatar aspect ratio, reduced-motion-aware scroll and improved mobile navigation.
-- Social preview uses the supplied actual public hero screenshot. Set the final public site URL with npm run set-site-url -- https://YOUR-ACTUAL-HOSTNAME, then rebuild for absolute Open Graph image/canonical URLs and sitemap.
-- Source backup is included under backups/. Do not publish that folder separately; deploy only dist/.
-
-### Missing verified links / recording
-
-src/config/publicLinks.ts contains verified portfolio, GitHub profile and LinkedIn URLs. The exact NEXA repository URL and booking URL have not been supplied. Set repository and booking to those real public URLs to enable accurate CTAs. Until then GitHub opens the developer profile, and the booking button is omitted.
-
-The screen recording mentioned by the owner was not available in the current scratch attachments. Supplied screenshots and existing source were used as the visual baseline. Video rendering is supported: place the actual sanitized MP4 under public/media/ and set demoVideo in src/config/publicLinks.ts. No placeholder video or fabricated recording is included.
-
-### Updated checks
-
-Passed npx tsc --noEmit and npm run build. A static React server render checked unique section IDs, valid local anchor targets, existing image files and image descriptions. Static source inspection found no fetch/XMLHttpRequest API calls. This is not a complete security audit.
-
-Lint could not run because this project has no lint script/configuration. Updated browser interactions, responsive overflow, actual device compatibility and accessibility were not browser-tested because the supported managed browser capability is unavailable. Responsive CSS was inspected, but that does not establish a browser pass. Hosted publishing remains unavailable because the Sites publishing helper is not installed. Manual deployment instructions above remain applicable.
+Remaining: complete current mobile/tablet and accessibility review; verify account spending controls; review dependencies; record a clean walkthrough. Private authentication, personal-service integration and precise lip sync remain separate future work. No complete security audit is claimed.

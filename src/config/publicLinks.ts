@@ -3,7 +3,7 @@ export const PUBLIC_LINKS: { portfolio: string; githubProfile: string; linkedin:
   portfolio: 'https://yasmeenazmat.com',
   githubProfile: 'https://github.com/yasmeenmh90-beep',
   linkedin: 'https://www.linkedin.com/in/yasmeen-azmat-a02b44340',
-  repository: null,
+  repository: 'https://github.com/yasmeenmh90-beep/nexa-public',
   booking: null,
   demoVideo: null, // e.g. /media/nexa-demo.mp4 after providing the real recording
 };

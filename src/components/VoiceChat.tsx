@@ -18,6 +18,8 @@ const feedbackUrl = (title: string) => `${PUBLIC_LINKS.repository || "https://gi
 
 type State = "idle" | "listening" | "thinking" | "speaking";
 type Message = { role: string; text: string };
+type PracticeTrack = "ai-ml" | "full-stack" | "backend";
+const practiceTracks = { "ai-ml": "AI / Machine Learning", "full-stack": "Full-stack development", backend: "Backend engineering" };
 
 type Props = {
   samples: Record<string, string>;
@@ -26,6 +28,9 @@ type Props = {
 
 export default function VoiceChat({ samples, renderPortrait }: Props) {
   const [mode, setMode] = useState<"sample" | "live">("sample");
+  const [purpose, setPurpose] = useState<"general" | "interview">("general");
+  const [practiceTrack, setPracticeTrack] = useState<PracticeTrack>("ai-ml");
+  const [practiceLevel, setPracticeLevel] = useState<"beginner" | "intermediate">("beginner");
   const [text, setText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -135,7 +140,9 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, history: history.current }),
+          body: JSON.stringify({ message, history: history.current, purpose,
+            ...(purpose === "interview" ? { interview: { track: practiceTrack, level: practiceLevel } } : {}),
+          }),
           signal: controller.signal,
         });
 
@@ -168,7 +175,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
       setMessages((previous) => [
         ...previous,
         {
-          role: mode === "sample" ? "NEXA · sample" : "NEXA · AI",
+          role: mode === "sample" ? "NEXA · sample" : purpose === "interview" ? "NEXA · interview practice" : "NEXA · AI",
           text: reply,
         },
       ]);
@@ -192,9 +199,9 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
     .reverse()
     .find((message) => message.role !== "You");
 
-  const prompts = messages.length
-    ? ["Explain that more simply.", "Give me a practical example."]
-    : suggestions;
+  const prompts = purpose === "interview"
+    ? ["Give me a hint for this question.", "Show an example of a stronger answer."]
+    : messages.length ? ["Explain that more simply.", "Give me a practical example."] : suggestions;
 
   return (
     <div className="demo-shell">
@@ -211,6 +218,10 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           : "Ask a general question and follow up. Your message and up to three recent exchanges go to OpenAI. AI can be inaccurate."}
         {" "}Personal accounts are not connected.
       </p>
+      {mode === "live" && <div className="chat-tool-tabs" role="group" aria-label="Live AI experience">
+        <button type="button" aria-pressed={purpose === "general"} onClick={() => { reset(); setPurpose("general"); }}>General chat</button>
+        <button type="button" aria-pressed={purpose === "interview"} onClick={() => { reset(); setPurpose("interview"); }}>Interview Practice</button>
+      </div>}
       <div className="demo">
         <div className="demo-character">
           <p className="portrait-eyebrow">NEXA / YOUR CONVERSATION SPACE</p>
@@ -224,19 +235,25 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           <div className="character-tags"><span>Text & voice</span><span>{mode === "sample" ? "Fictional samples" : "General AI answers"}</span></div>
         </div>
         <div className="demo-chat">
-          <div className="demo-top"><div><span>{mode === "sample" ? "EXPLORE THE POSSIBILITIES" : "A LITTLE CLARITY STARTS HERE"}</span><h3>{mode === "sample" ? "What’s on your radar?" : "What’s on your mind?"}</h3></div><button type="button" onClick={reset}>Reset chat ↺</button></div>
+          <div className="demo-top"><div><span>{mode === "sample" ? "EXPLORE THE POSSIBILITIES" : purpose === "interview" ? "PRACTISE · REFLECT · IMPROVE" : "A LITTLE CLARITY STARTS HERE"}</span><h3>{mode === "sample" ? "What’s on your radar?" : purpose === "interview" ? "Build confidence, one answer at a time." : "What’s on your mind?"}</h3></div><button type="button" onClick={reset}>Reset chat ↺</button></div>
+          {mode === "live" && purpose === "interview" && <div className="practice-setup">
+            <div><label htmlFor="practice-track">Track</label><select id="practice-track" value={practiceTrack} disabled={busy || voice.listening || voice.speaking} onChange={event => { reset(); setPracticeTrack(event.target.value as PracticeTrack); }}>{Object.entries(practiceTracks).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+            <div><label htmlFor="practice-level">Level</label><select id="practice-level" value={practiceLevel} disabled={busy || voice.listening || voice.speaking} onChange={event => { reset(); setPracticeLevel(event.target.value as "beginner" | "intermediate"); }}><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option></select></div>
+            <p>AI-generated coaching, not a hiring assessment. Changing the track or level starts a new session.</p>
+            {!messages.length && <button type="button" className="practice-start" disabled={busy || voice.listening} onClick={() => void send("Start my interview practice. Ask one " + practiceLevel + " question about " + practiceTracks[practiceTrack] + ". Wait for my answer before giving feedback.")}>Start practice ↗</button>}
+          </div>}
           <div ref={log} className={`conversation ${messages.length ? "" : "conversation-empty"}`} role="log" aria-label="NEXA conversation" aria-live="polite">
-            {!messages.length && <div className="welcome"><span aria-hidden="true">✦</span><h3>Hi, I’m NEXA.</h3><p>{mode === "sample" ? "Choose a task to preview an everyday workflow." : "Bring a question, an idea, or something you’re curious about."}</p></div>}
+            {!messages.length && <div className="welcome"><span aria-hidden="true">✦</span><h3>{mode === "live" && purpose === "interview" ? "Let’s practise." : "Hi, I’m NEXA."}</h3><p>{mode === "sample" ? "Choose a task to preview an everyday workflow." : purpose === "interview" ? "Choose a track, answer one question, and get constructive feedback." : "Bring a question, an idea, or something you’re curious about."}</p></div>}
             {messages.map((message, index) => <div key={index} className={`bubble ${message.role === "You" ? "user" : ""}`}><small>{message.role}</small><p>{message.text}</p>{message.role !== "You" && <button type="button" className="copy-answer" aria-label={`Copy NEXA answer ${index + 1}`} onClick={() => void copyAnswer(message.text, index)}>{copied === index ? "Copied ✓" : "Copy answer"}</button>}</div>)}
             {busy && <p className="processing"><span aria-hidden="true">•••</span> Preparing an answer</p>}
           </div>
           <p className="copy-notice" role="status">{copyNotice}</p>
           {mode === "sample"
             ? <div className="quick-actions" aria-label="Sample tasks">{Object.keys(samples).map(action => <button type="button" key={action} disabled={busy || voice.listening} onClick={() => void send(action)}>{action}<span aria-hidden="true">↗</span></button>)}</div>
-            : <div className="suggested-questions" aria-label="Suggested questions"><p>{messages.length ? "Keep exploring" : "A few places to start"}</p><div>{prompts.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div></div>}
+            : (purpose !== "interview" || messages.length > 0) && <div className="suggested-questions" aria-label="Suggested questions"><p>{messages.length ? "Keep exploring" : "A few places to start"}</p><div>{prompts.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div></div>}
           <form onSubmit={event => { event.preventDefault(); void send(text); }}>
             <label className="sr-only" htmlFor="voice-message">Message NEXA</label>
-            <input id="voice-message" ref={input} value={text} maxLength={1500} onChange={event => setText(event.target.value)} placeholder={mode === "sample" ? "Try “Daily briefing”…" : "Ask anything you’re curious about…"}/>
+            <input id="voice-message" ref={input} value={text} maxLength={1500} onChange={event => setText(event.target.value)} placeholder={mode === "sample" ? "Try “Daily briefing”…" : purpose === "interview" ? "Type or dictate your interview answer…" : "Ask anything you’re curious about…"}/>
             <button type="submit" disabled={busy || voice.listening || !text.trim()} aria-label="Send message">↑</button>
           </form>
           <div className="voice-toolbar" aria-label="Voice controls">

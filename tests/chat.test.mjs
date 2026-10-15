@@ -95,3 +95,30 @@ test("maps upstream throttling without disclosing upstream error content", async
   assert.equal(response.status, 429);
   assert.equal((await response.text()).includes("private upstream details"), false);
 });
+
+test("interview mode supplies a fixed track and coaching instructions", async () => {
+  setup();
+  mockAnswer(payload => {
+    assert(payload.instructions.includes("backend software engineering at intermediate level"));
+    assert(payload.instructions.includes("exactly one concise technical question"));
+    assert(payload.instructions.includes("not a hiring assessment"));
+    assert(payload.instructions.includes("Never invent the user's employment history"));
+    assert(!payload.instructions.includes("InvoiceGuard"));
+    assert.deepEqual(payload.input, [{ role: "user", content: "Start practice" }]);
+  });
+  assert.equal((await handler(request({ message: "Start practice", purpose: "interview", interview: { track: "backend", level: "intermediate" } }))).status, 200);
+});
+test("unsupported chat purposes and practice settings never contact OpenAI", async () => {
+  setup(); noUpstream();
+  for (const body of [
+    { purpose: "projects" },
+    { purpose: "interview", interview: { track: "unknown", level: "beginner" } },
+    { purpose: "interview", interview: { track: "ai-ml", level: "expert" } },
+    { purpose: "interview", interview: { track: { toString: null }, level: "beginner" } },
+  ]) assert.equal((await handler(request({ message: "Start", ...body }))).status, 400);
+});
+test("general chat does not inherit practice instructions", async () => {
+  setup();
+  mockAnswer(payload => assert(!payload.instructions.includes("conducting an educational practice interview")));
+  assert.equal((await handler(request({ message: "Hello", purpose: "general" }))).status, 200);
+});

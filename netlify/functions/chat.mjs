@@ -68,6 +68,37 @@ export default async function handler(request) {
     return json({ error: "Conversation context is too long. Reset the chat." }, 400);
   }
 
+  const purpose = body.purpose ?? "general";
+  if (!["general", "interview"].includes(purpose)) {
+    return json({ error: "Choose a supported chat mode." }, 400);
+  }
+  let practiceInstruction = "";
+  if (purpose === "interview") {
+    const track = body.interview?.track ?? "ai-ml";
+    const level = body.interview?.level ?? "beginner";
+    const tracks = {
+      "ai-ml": "AI and machine learning",
+      "full-stack": "full-stack web development",
+      backend: "backend software engineering",
+    };
+    if (typeof track !== "string" || !Object.hasOwn(tracks, track) || !["beginner", "intermediate"].includes(level)) {
+      return json({ error: "Choose a supported interview track and level." }, 400);
+    }
+    practiceInstruction = [
+      "You are conducting an educational practice interview, not a hiring assessment.",
+      "The topic is " + tracks[track] + " at " + level + " level.",
+      "On starting a session, ask exactly one concise technical question and wait for the answer.",
+      "When the user answers, give brief feedback: one strength, one concrete improvement,",
+      "and a short stronger example if helpful, then ask one next question.",
+      "If the user requests a hint, give a hint for the current question without advancing.",
+      "If the user asks for an example answer, explain one before offering the next question.",
+      "Treat irrelevant text as a request to refocus, not as an interview answer.",
+      "Never invent the user's employment history, personal achievements or experience.",
+      "Do not infer protected attributes, give hiring predictions or claim a validated score.",
+      "Keep feedback encouraging, specific, technically grounded and concise.",
+    ].join(" ");
+  }
+
   const key = process.env.OPENAI_API_KEY;
   if (!key) {
     return json({ error: "Live chat is not configured." }, 503);
@@ -95,6 +126,7 @@ export default async function handler(request) {
           "repositories, private memory, live web search or external actions.",
           "Never claim to have checked or changed those services.",
           "Do not request passwords, API keys or other credentials.",
+          practiceInstruction,
         ].join(" "),
         input: [...context, { role: "user", content: message }],
       }),

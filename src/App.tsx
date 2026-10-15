@@ -1,4 +1,5 @@
 import VoiceChat from './components/VoiceChat';
+import GuidedTour from './components/GuidedTour';
 import { usePageMotion } from './hooks/usePageMotion';
 import { useState, useRef, type ReactNode, type CSSProperties } from 'react';
 import { PUBLIC_LINKS } from './config/publicLinks';
@@ -50,7 +51,7 @@ const layers: Record<string, string> = {
   'Response': 'Sample replies stay local. Live AI returns text through the server; optional browser speech reads it aloud. Recent context clears on Reset, mode changes or refresh.',
 };
 const faqs = [
-  ['What can I use NEXA for?', 'Ask general questions, explore an AI concept, plan a day or practise interview questions in Live AI. Sample Demo previews fictional productivity tasks. Neither mode performs actions in personal accounts.'],
+  ['What can I use NEXA for?', 'Ask general questions, explore an AI concept, plan a day or select Interview Practice in Live AI for one-question-at-a-time coaching. Sample Demo previews fictional productivity tasks. Neither mode performs actions in personal accounts.'],
   ['What is the difference between Sample and Live AI?', 'Sample Demo uses predefined fictional answers in your browser. Live AI sends your question and up to three recent completed exchanges to OpenAI through a server endpoint. Responses can be inaccurate.'],
   ['Can I speak instead of typing?', 'Yes, in supported browsers. Choose Microphone, speak, review the recognized text and press Send. Enable spoken replies to hear answers. Available languages and voices depend on your browser.'],
   ['Does NEXA access my email, calendar or GitHub?', 'No. Personal accounts and private n8n workflows are disconnected from this public site. The screenshot gallery documents an earlier prototype using sample data.'],
@@ -83,7 +84,7 @@ export default function App() {
           <h1>A little less switching.<br/><em>A little more clarity.</em></h1>
           <p className="hero-subtitle">Meet NEXA. Your window into a more connected way to work.</p>
           <p className="lead">Ask a question, say it aloud, or explore a sample briefing. A conversational AI experience built around a familiar face—and clear boundaries.</p>
-          <div className="buttons"><a className="button primary" href="#demo">Talk to NEXA <span>↗</span></a><a className="button secondary" href="#architecture">Explore the architecture</a></div>
+          <div className="buttons"><a className="button primary" href="#demo">Talk to NEXA <span>↗</span></a><GuidedTour/></div>
           <div className="hero-capabilities"><span>Text & voice</span><span>Live AI answers</span><span>Fictional task previews</span></div>
           <a className="hero-builder" href={portfolio}>Designed & built by Yasmeen Azmat Ali <span>↗</span></a>
         </div>
@@ -125,11 +126,11 @@ export default function App() {
           ['02', 'A controlled public AI route', 'Server-side credentials, input validation, bounded conversation history, request throttling and upstream timeouts.'],
           ['03', 'An expressive, honest interface', 'Browser speech input/output and playback effects, with visible distinctions between samples, AI answers and future capabilities.'],
         ].map(([number, title, text]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></div>
-        <div id="evidence" className="evidence-strip"><div><span className="evidence-mark">✓</span><strong>TypeScript checks</strong><small>Component & state validation</small></div><div><span className="evidence-mark">07</span><strong>Backend tests</strong><small>Mocked API & validation tests</small></div><div><span className="evidence-mark">↗</span><strong>Public source</strong><small>Setup & verification in the README</small></div></div>
+        <div id="evidence" className="evidence-strip"><div><span className="evidence-mark">✓</span><strong>TypeScript checks</strong><small>Component & state validation</small></div><div><span className="evidence-mark">10</span><strong>Backend tests</strong><small>Mocked API & validation tests</small></div><div><span className="evidence-mark">↗</span><strong>Public source</strong><small>Setup & verification in the README</small></div></div>
         <p className="caption">The owner reports passing live chat and voice tests. Static checks and mocked tests do not establish complete security or device compatibility.</p>
       </Section>
       <Section id="development" kicker="07 / THE ROAD AHEAD" title="Working today. Room to grow.">
-        <div className="roadmap-grid"><article className="roadmap-current"><Tag>AVAILABLE NOW</Tag><h3>A public experience you can try.</h3><ul><li>Sample tasks and general Live AI answers</li><li>Voice input and spoken replies</li><li>Short follow-up context and answer copying</li><li>Public feedback and source access</li></ul></article><article className="roadmap-next"><Tag>NEXT MILESTONES</Tag><h3>A deliberate path forward.</h3><ul><li>Complete cross-device and accessibility review</li><li>Monitor usage and add a clean walkthrough</li><li>Build owner authentication for private workflows</li><li>Revisit precise lip sync after avatar testing</li></ul></article></div>
+        <div className="roadmap-grid"><article className="roadmap-current"><Tag>AVAILABLE NOW</Tag><h3>A public experience you can try.</h3><ul><li>Sample tasks and general Live AI answers</li><li>Voice input and spoken replies</li><li>Short follow-up context and answer copying</li><li>Interview Practice and a guided website tour</li><li>Public feedback and source access</li></ul></article><article className="roadmap-next"><Tag>NEXT MILESTONES</Tag><h3>A deliberate path forward.</h3><ul><li>Complete cross-device and accessibility review</li><li>Monitor usage and add a clean walkthrough</li><li>Build owner authentication for private workflows</li><li>Revisit precise lip sync after avatar testing</li></ul></article></div>
         <details className="technical-details history-details"><summary>Earlier development & verification <span>+</span></summary><p>The owner reports recovering 37 original source files and verifying their SHA-256 integrity, plus separate read-only specialist routing checks in n8n. These are historical owner-reported results, not a new independent audit. The earlier private-assistant prototype, pictured above, included a demo login and dashboard. It is distinct from this public website.</p></details>
       </Section>
       <Section id="about" kicker="08 / THE BUILDER" title="Built with curiosity. Grounded in engineering."><div className="about-panel"><div className="builder-monogram" aria-hidden="true">YA<span>✦</span></div><div><h3>Yasmeen Azmat Ali</h3><p>AI/ML and full-stack engineer exploring practical AI, agentic systems and the interfaces that make them useful.</p></div><div className="about-links"><a href={portfolio}>Portfolio ↗</a><a href={github}>GitHub ↗</a><a href={linkedin}>Connect ↗</a></div></div></Section>

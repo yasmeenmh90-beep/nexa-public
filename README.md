@@ -87,7 +87,7 @@ Public links live in src/config/publicLinks.ts. A booking link and video are opt
 
 ## Validation and remaining work
 
-The owner reports successful microphone transcription, Live AI answers and spoken-reply tests on the deployed site. TypeScript checks and seven Node backend tests passed for the visitor tools update. Backend tests mock OpenAI; they do not verify live model output, clipboard permissions or browser interactions. Earlier Netlify releases built and deployed; a new production build is validated by the next Netlify deployment.
+The owner reports successful microphone transcription, Live AI answers and spoken-reply tests on the deployed site. TypeScript checks and ten Node backend tests passed for the visitor tools update. Backend tests mock OpenAI; they do not verify live model output, clipboard permissions or browser interactions. Earlier Netlify releases built and deployed; a new production build is validated by the next Netlify deployment.
 
 The screenshot gallery documents an earlier dashboard prototype, not every feature of the current release. Historical source-recovery and n8n verification claims are attributed to the owner.
 
@@ -100,4 +100,13 @@ The public page now puts the conversation first: an editorial hero, three use ca
 
 Voice settings are grouped into an expandable panel. Microphone, spoken-reply toggle and Read aloud/Stop speaking remain directly available. Suggested questions become short follow-up prompts after the conversation starts. The existing avatar, speech lifecycle, copy controls, feedback links and bounded context are retained.
 
-Validation for this update: TypeScript compilation, a Vite production bundle, seven mocked backend tests, and static rendered-HTML checks. Browser preview was unavailable in the editing environment; real mobile, clipboard, microphone and accessibility interactions still need device review. No new dependencies or API integrations were added.
+Validation for this update: TypeScript compilation, a Vite production bundle, ten mocked backend tests, and static rendered-HTML checks. Browser preview was unavailable in the editing environment; real mobile, clipboard, microphone and accessibility interactions still need device review. No new dependencies or API integrations were added.
+
+
+## Interview Practice and guided tour
+
+In Live AI, choose **Interview Practice**, select AI/ML, full-stack or backend and a beginner/intermediate level, then press **Start practice**. NEXA asks one question at a time, offers constructive feedback, and supports typed or dictated answers. Feedback is educational and AI-generated, not a validated score or hiring prediction. A track, level or experience change resets recent context. The existing API limits and output cap still apply.
+
+**Take a guided tour** in the hero opens a six-step local overview with Back, Next, Finish and Escape controls. It makes no AI requests and respects reduced-motion preferences.
+
+No personal project catalogue or portfolio knowledge was added. General chat and fictional Sample Demo remain available. Validate microphone, modal focus and interview-answer quality in the deployed browser.

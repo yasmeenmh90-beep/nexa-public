@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://nexa-public.netlify.app/</loc></url></urlset>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://nexa-public.netlify.app/</loc></url>  <url><loc>https://nexa-public.netlify.app/privacy</loc></url>
+  <url><loc>https://nexa-public.netlify.app/terms</loc></url>
+  <url><loc>https://nexa-public.netlify.app/security</loc></url>
+</urlset>

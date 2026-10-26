@@ -259,3 +259,14 @@ Private authentication, personal-service integration and precise lip sync remain
 <sub>PUBLIC AI EXPERIENCE · REACT + TYPESCRIPT · DOCUMENTATION UPDATED 15 OCTOBER 2026</sub>
 
 </div>
+
+## Owner sign-in and policies
+
+The site has owner-only accounts (Supabase) and policy pages:
+
+| Path | Page |
+| --- | --- |
+| `/signin`, `/signup`, `/account` | Owner sign-in, account creation and the **Open NEXA desktop** button |
+| `/privacy`, `/terms`, `/security` | Privacy Policy, Terms of Use and Security Policy |
+
+Setup: create a Supabase project, run `supabase/owner-only.sql` in its SQL Editor (only the owner email can sign up), and add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to Netlify's environment variables (see `.env.example`). Without these variables the sign-in pages show “not set up” and the rest of the site works as before. Security headers are set in `netlify.toml`.

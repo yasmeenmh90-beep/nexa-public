@@ -74,7 +74,7 @@ export default function App() {
     <header className="nav">
       <a className="brand" href="#overview" aria-label="NEXA home"><span>✦</span> NEXA</a>
       <button className="menu" aria-expanded={menu} aria-controls="navigation" onClick={() => setMenu(!menu)}>{menu ? 'Close' : 'Menu'}</button>
-      <nav id="navigation" className={menu ? 'open' : ''}>{nav.map(([name, id]) => <a key={id} href={'#' + id} onClick={() => setMenu(false)}>{name}</a>)}<a className="nav-source" href={github}>Source code ↗</a></nav>
+      <nav id="navigation" className={menu ? 'open' : ''}>{nav.map(([name, id]) => <a key={id} href={'#' + id} onClick={() => setMenu(false)}>{name}</a>)}<a className="nav-source" href={github}>Source code ↗</a><a className="nav-signin" href="/signin">Sign in</a></nav>
       <a className="nav-cta" href="#demo">Start a conversation <span>↗</span></a>
     </header>
     <main>
@@ -137,6 +137,6 @@ export default function App() {
       <Section id="faq" kicker="09 / A FEW ANSWERS" title="Before you ask NEXA."><div className="faq">{faqs.map(([question, answer]) => <details key={question}><summary>{question}<span>+</span></summary><p>{answer}</p></details>)}</div></Section>
       <section className="final-cta"><p className="eyebrow">IDEAS BECOME MORE USEFUL IN CONVERSATION.</p><h2>Go ahead.<br/><em>Ask your first question.</em></h2><div className="buttons"><a className="button primary" href="#demo">Talk to NEXA ↗</a><a className="text-link" href={github}>Explore the source ↗</a>{PUBLIC_LINKS.booking && <a className="text-link" href={PUBLIC_LINKS.booking}>Book a conversation ↗</a>}</div></section>
     </main>
-    <footer><div><a className="brand" href="#overview"><span>✦</span> NEXA</a><p>Personal AI Operations Assistant<br/>An independent project by Yasmeen Azmat Ali.</p></div><div className="footer-links"><a href="#demo">Try NEXA</a><a href="#architecture">Architecture</a><a href={portfolio}>Portfolio</a><a href={github}>GitHub</a><span>© {new Date().getFullYear()} · Sample content is fictional. AI can be inaccurate.</span></div></footer>
+    <footer><div><a className="brand" href="#overview"><span>✦</span> NEXA</a><p>Personal AI Operations Assistant<br/>An independent project by Yasmeen Azmat Ali.</p></div><div className="footer-links"><a href="#demo">Try NEXA</a><a href="#architecture">Architecture</a><a href={portfolio}>Portfolio</a><a href={github}>GitHub</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/security">Security</a><span>© {new Date().getFullYear()} · Sample content is fictional. AI can be inaccurate.</span></div></footer>
   </>;
 }

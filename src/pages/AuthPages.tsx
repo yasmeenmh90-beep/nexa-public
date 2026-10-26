@@ -148,11 +148,16 @@ export function SignUpPage() {
   </form>);
 }
 
-const APPS: { group: string; mark: string; color: string; apps: string; live: boolean }[] = [
-  { group: 'Google', mark: 'G', color: '#4f8df5', apps: 'Gmail · Calendar · Sheets · Drive next', live: true },
-  { group: 'GitHub', mark: 'GH', color: '#9aa4b2', apps: 'Repositories · commits · issues · PRs', live: true },
-  { group: 'Microsoft', mark: 'M', color: '#2fb3a5', apps: 'Outlook · Excel · OneDrive', live: false },
-  { group: 'LinkedIn', mark: 'in', color: '#3d8fd1', apps: 'Profile · sharing posts you approve', live: false },
+const APPS: { name: string; group: string; mark: string; color: string; use: string; live: boolean }[] = [
+  { name: 'Gmail', group: 'Google', mark: 'M', color: '#ea6a5a', use: 'Read, summarise and send with approval', live: true },
+  { name: 'Google Calendar', group: 'Google', mark: '31', color: '#4f8df5', use: 'Your schedule; changes need approval', live: true },
+  { name: 'Google Sheets', group: 'Google', mark: 'S', color: '#34a86b', use: 'The NEXA tracker and other sheets', live: true },
+  { name: 'Google Drive', group: 'Google', mark: 'D', color: '#f2b53c', use: 'Find documents and your CV', live: false },
+  { name: 'GitHub', group: 'GitHub', mark: 'GH', color: '#b4bccb', use: 'Repos, commits, issues and PRs', live: true },
+  { name: 'Outlook', group: 'Microsoft', mark: 'O', color: '#3b8fe0', use: 'Read Outlook mail', live: false },
+  { name: 'Excel', group: 'Microsoft', mark: 'X', color: '#2e9e63', use: 'Workbooks in OneDrive', live: false },
+  { name: 'OneDrive', group: 'Microsoft', mark: '1D', color: '#4aa3e8', use: 'Find files in OneDrive', live: false },
+  { name: 'LinkedIn', group: 'LinkedIn', mark: 'in', color: '#3d8fd1', use: 'Profile and posts you approve', live: false },
 ];
 
 export function AccountPage() {
@@ -207,10 +212,10 @@ export function AccountPage() {
         <li><span>2</span>Sign in with this account</li>
         <li><span>3</span>Press <strong>Connect</strong> on each app</li>
       </ol>
-      <div className="app-grid">{APPS.map(app => <article key={app.group} className="app-tile">
+      <div className="app-grid">{APPS.map(app => <article key={app.name} className="app-tile">
         <span className="app-mark" style={{ background: app.color + '26', color: app.color, borderColor: app.color + '55' }} aria-hidden="true">{app.mark}</span>
-        <div><h3>{app.group}</h3><p>{app.apps}</p></div>
-        <span className={'app-tag' + (app.live ? ' live' : '')}>{app.live ? 'Agents live' : 'Coming next'}</span>
+        <div className="app-text"><h3>{app.name}</h3><p>{app.use}</p></div>
+        <span className={'app-tag' + (app.live ? ' live' : '')}>{app.live ? 'Agent live' : 'Coming next'}</span>
       </article>)}</div>
       <p className="auth-small">Email and calendar changes always need your approval in NEXA first. Read the <a href="/security">security policy</a>.</p>
     </section>

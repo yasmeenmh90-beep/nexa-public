@@ -520,3 +520,10 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:#ffffff
 .auth-meter i{width:auto;box-shadow:none;border-radius:4px}
 .auth-loading i{display:block;box-shadow:none;background:none}
 .auth-visual img{-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%)}
+.app-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:12px}
+.app-tile{flex-direction:row;align-items:center;gap:14px;padding:14px 16px;border-radius:16px}
+.app-text{flex:1;min-width:0}
+.app-tile h3{font-size:15px;margin:0 0 2px}
+.app-tile p{font-size:12px}
+.app-tile .app-tag{align-self:center;white-space:nowrap}
+.app-mark{width:40px;height:40px;flex-shrink:0;font-size:13px}

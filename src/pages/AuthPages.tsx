@@ -152,12 +152,12 @@ const APPS: { name: string; group: string; mark: string; color: string; use: str
   { name: 'Gmail', group: 'Google', mark: 'M', color: '#ea6a5a', use: 'Read, summarise and send with approval', live: true },
   { name: 'Google Calendar', group: 'Google', mark: '31', color: '#4f8df5', use: 'Your schedule; changes need approval', live: true },
   { name: 'Google Sheets', group: 'Google', mark: 'S', color: '#34a86b', use: 'The NEXA tracker and other sheets', live: true },
-  { name: 'Google Drive', group: 'Google', mark: 'D', color: '#f2b53c', use: 'Find documents and your CV', live: false },
+  { name: 'Google Drive', group: 'Google', mark: 'D', color: '#f2b53c', use: 'Find, read and save documents', live: true },
   { name: 'GitHub', group: 'GitHub', mark: 'GH', color: '#b4bccb', use: 'Repos, commits, issues and PRs', live: true },
-  { name: 'Outlook', group: 'Microsoft', mark: 'O', color: '#3b8fe0', use: 'Read Outlook mail', live: false },
-  { name: 'Excel', group: 'Microsoft', mark: 'X', color: '#2e9e63', use: 'Workbooks in OneDrive', live: false },
-  { name: 'OneDrive', group: 'Microsoft', mark: '1D', color: '#4aa3e8', use: 'Find files in OneDrive', live: false },
-  { name: 'LinkedIn', group: 'LinkedIn', mark: 'in', color: '#3d8fd1', use: 'Profile and posts you approve', live: false },
+  { name: 'Outlook', group: 'Microsoft', mark: 'O', color: '#3b8fe0', use: 'Read mail; sending needs approval', live: true },
+  { name: 'Excel', group: 'Microsoft', mark: 'X', color: '#2e9e63', use: 'Read sheets; add rows with approval', live: true },
+  { name: 'OneDrive', group: 'Microsoft', mark: '1D', color: '#4aa3e8', use: 'Find and save files', live: true },
+  { name: 'LinkedIn', group: 'LinkedIn', mark: 'in', color: '#3d8fd1', use: 'Profile and posts you approve', live: true },
 ];
 
 export function AccountPage() {
@@ -215,7 +215,7 @@ export function AccountPage() {
       <div className="app-grid">{APPS.map(app => <article key={app.name} className="app-tile">
         <span className="app-mark" style={{ background: app.color + '26', color: app.color, borderColor: app.color + '55' }} aria-hidden="true">{app.mark}</span>
         <div className="app-text"><h3>{app.name}</h3><p>{app.use}</p></div>
-        <span className={'app-tag' + (app.live ? ' live' : '')}>{app.live ? 'Agent live' : 'Coming next'}</span>
+        <span className={'app-tag' + (app.live ? ' live' : '')}>{app.live ? 'Agent ready' : 'Coming next'}</span>
       </article>)}</div>
       <p className="auth-small">Email and calendar changes always need your approval in NEXA first. Read the <a href="/security">security policy</a>.</p>
     </section>

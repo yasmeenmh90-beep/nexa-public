@@ -87,7 +87,7 @@ export function SignUpPage() {
       <PrivateNotice />
       <label>Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
       <label>Password<input type="password" autoComplete="new-password" minLength={MIN_PASSWORD} required value={password} onChange={e => setPassword(e.target.value)} aria-describedby="pw-help" /></label>
-      <small id="pw-help">At least {MIN_PASSWORD} characters. A password manager is recommended.</small>
+      <small id="pw-help">At least {MIN_PASSWORD} characters, with a lowercase and an uppercase letter, a number and a symbol.</small>
       <label>Confirm password<input type="password" autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
       <label className="auth-check"><input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} /> <span>I agree to the <a href="/terms">Terms</a> and have read the <a href="/privacy">Privacy Policy</a>.</span></label>
       {(problem || error) && <p className="auth-error" role="alert">{problem || error}</p>}

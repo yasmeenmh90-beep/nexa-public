@@ -18,7 +18,9 @@ export function friendlyAuthError(message: string | undefined): string {
   if (text.includes('invalid login')) return 'Email or password is incorrect.';
   if (text.includes('email not confirmed')) return 'Confirm your email first. Check your inbox for the link from NEXA.';
   if (text.includes('private') || text.includes('database error saving new user') || text.includes('signups not allowed')) return 'NEXA is private. New accounts are limited to the owner.';
-  if (text.includes('password') && text.includes('characters')) return 'Use a longer password (at least 12 characters).';
+  if (text.includes('should contain') || text.includes('weak') || (text.includes('password') && text.includes('character'))) return 'Password too weak: use at least 12 characters with a lowercase letter, an uppercase letter, a number and a symbol.';
+  if (text.includes('invalid api key') || text.includes('no api key')) return 'Sign-in is misconfigured (Supabase key). Check VITE_SUPABASE_ANON_KEY.';
+  if (text.includes('error sending') || text.includes('smtp')) return 'The confirmation email could not be sent. Try again in a few minutes.';
   if (text.includes('rate limit') || text.includes('too many')) return 'Too many attempts. Wait a few minutes and try again.';
   return 'Something went wrong. Please try again.';
 }

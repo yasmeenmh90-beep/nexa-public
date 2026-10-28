@@ -527,3 +527,11 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:#ffffff
 .app-tile p{font-size:12px}
 .app-tile .app-tag{align-self:center;white-space:nowrap}
 .app-mark{width:40px;height:40px;flex-shrink:0;font-size:13px}
+/* Live AI daily usage */
+.usage-note{display:flex;align-items:center;gap:10px;margin:0;padding:10px 24px;font-size:11px;color:#c9bfe0;border-bottom:1px solid #c4b5fd15;line-height:1.6}
+.usage-meter{flex:none;width:72px;height:5px;border-radius:99px;background:#c4b5fd22;overflow:hidden}
+.usage-meter i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c084fc,#f472b6)}
+.usage-closed{display:block;color:#f5d0e6;background:linear-gradient(90deg,#d946ef14,#f472b60d)}
+.usage-closed strong{color:#fbe7f3;font-weight:600}
+.demo-chat input:disabled{opacity:.55;cursor:not-allowed}
+@media (max-width:640px){.usage-note{padding:9px 16px;font-size:10px}}

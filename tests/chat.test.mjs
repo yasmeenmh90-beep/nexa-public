@@ -1,6 +1,7 @@
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import handler from "../netlify/functions/chat.mjs";
+import { useUsageStore, memoryStore, today } from "../netlify/lib/usage.mjs";
 
 const originalFetch = globalThis.fetch;
 const previousKey = process.env.OPENAI_API_KEY;
@@ -13,6 +14,7 @@ afterEach(() => {
   else process.env.NEXA_LIVE_CHAT_ENABLED = previousSwitch;
 });
 function setup() {
+  useUsageStore(memoryStore());
   process.env.OPENAI_API_KEY = "test-key-not-real";
   process.env.NEXA_LIVE_CHAT_ENABLED = "true";
 }
@@ -50,7 +52,9 @@ test("forwards bounded follow-up context and strips extra item fields", async ()
   });
   const response = await handler(request({ message: "Give an example", history }));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { reply: "A test answer." });
+  const answer = await response.json();
+  assert.equal(answer.reply, "A test answer.");
+  assert.equal(answer.usage.remaining, answer.usage.limit - 1);
 });
 test("accepts first questions without history", async () => {
   setup();
@@ -121,4 +125,83 @@ test("general chat does not inherit practice instructions", async () => {
   setup();
   mockAnswer(payload => assert(!payload.instructions.includes("conducting an educational practice interview")));
   assert.equal((await handler(request({ message: "Hello", purpose: "general" }))).status, 200);
+});
+
+// ---- Daily usage limits ----
+function fromIp(ip) {
+  return new Request("https://nexa-public.netlify.app/api/chat", {
+    method: "POST",
+    headers: { origin: "https://nexa-public.netlify.app", "content-type": "application/json", "x-nf-client-connection-ip": ip },
+    body: JSON.stringify({ message: "Hello" }),
+  });
+}
+function okAnswer() {
+  globalThis.fetch = async () => new Response(JSON.stringify({ output: [{ content: [{ type: "output_text", text: "Hi" }] }] }), { status: 200 });
+}
+
+test("each visitor gets a daily allowance, then a clear limit with the reset time", async () => {
+  setup(); okAnswer();
+  process.env.NEXA_CHAT_DAILY_PER_VISITOR = "2";
+  try {
+    const first = await (await handler(fromIp("1.1.1.1"))).json();
+    assert.equal(first.usage.remaining, 1);
+    const second = await (await handler(fromIp("1.1.1.1"))).json();
+    assert.equal(second.usage.remaining, 0);
+    globalThis.fetch = async () => { assert.fail("Over-limit requests must not contact OpenAI"); };
+    const blocked = await handler(fromIp("1.1.1.1"));
+    assert.equal(blocked.status, 429);
+    const body = await blocked.json();
+    assert.equal(body.code, "daily_limit");
+    assert.equal(body.resetAt, today().resetAt);
+    okAnswer();
+    assert.equal((await handler(fromIp("2.2.2.2"))).status, 200, "another visitor is not affected");
+  } finally { delete process.env.NEXA_CHAT_DAILY_PER_VISITOR; }
+});
+
+test("the whole site has a daily cap", async () => {
+  setup(); okAnswer();
+  process.env.NEXA_CHAT_DAILY_TOTAL = "2";
+  try {
+    assert.equal((await handler(fromIp("1.0.0.1"))).status, 200);
+    assert.equal((await handler(fromIp("1.0.0.2"))).status, 200);
+    const blocked = await handler(fromIp("1.0.0.3"));
+    assert.equal(blocked.status, 429);
+    assert.equal((await blocked.json()).code, "site_limit");
+  } finally { delete process.env.NEXA_CHAT_DAILY_TOTAL; }
+});
+
+test("a visitor over their own limit cannot use up the site allowance", async () => {
+  setup(); okAnswer();
+  process.env.NEXA_CHAT_DAILY_PER_VISITOR = "1";
+  process.env.NEXA_CHAT_DAILY_TOTAL = "2";
+  try {
+    assert.equal((await handler(fromIp("9.9.9.9"))).status, 200);
+    for (let i = 0; i < 5; i++) assert.equal((await handler(fromIp("9.9.9.9"))).status, 429);
+    assert.equal((await handler(fromIp("8.8.8.8"))).status, 200);
+  } finally { delete process.env.NEXA_CHAT_DAILY_PER_VISITOR; delete process.env.NEXA_CHAT_DAILY_TOTAL; }
+});
+
+test("chat stays closed if the usage counter is unavailable", async () => {
+  setup(); noUpstream();
+  useUsageStore({ async getWithMetadata() { throw new Error("down"); }, async setJSON() { throw new Error("down"); } });
+  const response = await handler(fromIp("3.3.3.3"));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "unavailable");
+});
+
+test("GET shows remaining messages without spending one", async () => {
+  setup(); okAnswer();
+  await handler(fromIp("4.4.4.4"));
+  const view = await handler(new Request("https://nexa-public.netlify.app/api/chat", { headers: { "x-nf-client-connection-ip": "4.4.4.4" } }));
+  const body = await view.json();
+  assert.equal(body.enabled, true);
+  assert.equal(body.remaining, body.limit - 1);
+  const again = await (await handler(new Request("https://nexa-public.netlify.app/api/chat", { headers: { "x-nf-client-connection-ip": "4.4.4.4" } }))).json();
+  assert.equal(again.remaining, body.remaining);
+});
+
+test("GET reports when live chat is switched off", async () => {
+  setup();
+  process.env.NEXA_LIVE_CHAT_ENABLED = "false";
+  assert.deepEqual(await (await handler(new Request("https://nexa-public.netlify.app/api/chat"))).json(), { enabled: false });
 });

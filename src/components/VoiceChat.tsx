@@ -16,6 +16,19 @@ const suggestions = [
 ];
 const feedbackUrl = (title: string) => `${PUBLIC_LINKS.repository || "https://github.com/yasmeenmh90-beep/nexa-public"}/issues/new?${new URLSearchParams({ title, body: "What happened or what would you like to improve?\n\nSteps to reproduce (if relevant):\n\nBrowser and device:\n\nPlease do not include API keys or private conversation content." })}`;
 
+type Usage = { limit: number; remaining: number; resetAt: string; paused?: boolean };
+function timeUntil(resetAt: string, now: number) {
+  const minutes = Math.max(1, Math.ceil((Date.parse(resetAt) - now) / 60000));
+  const hours = Math.floor(minutes / 60);
+  return hours ? `${hours}h ${minutes % 60}m` : `${minutes} min`;
+}
+function readUsage(data: unknown): Usage | null {
+  const value = data as Partial<Usage> | null;
+  return value && typeof value.limit === "number" && typeof value.remaining === "number" && typeof value.resetAt === "string" && !Number.isNaN(Date.parse(value.resetAt))
+    ? { limit: value.limit, remaining: value.remaining, resetAt: value.resetAt, paused: value.paused === true }
+    : null;
+}
+
 type State = "idle" | "listening" | "thinking" | "speaking";
 type Message = { role: string; text: string };
 type PracticeTrack = "ai-ml" | "full-stack" | "backend";
@@ -39,6 +52,9 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
   const [language, setLanguage] = useState("en-US");
   const [copied, setCopied] = useState<number | null>(null);
   const [copyNotice, setCopyNotice] = useState("");
+  const [usage, setUsage] = useState<Usage | null>(null);
+  const [liveOff, setLiveOff] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   const request = useRef<AbortController | null>(null);
   const log = useRef<HTMLDivElement>(null);
@@ -47,6 +63,33 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   const copyAttempt = useRef(0);
   const voice = useVoice(setText);
+
+  const resetPassed = usage ? Date.parse(usage.resetAt) <= now : false;
+  const limited = mode === "live" && !!usage && !resetPassed && (usage.remaining <= 0 || !!usage.paused);
+  const liveBlocked = mode === "live" && (limited || liveOff);
+
+  // Load this visitor's remaining live messages when Live AI opens, and again after the daily reset.
+  useEffect(() => {
+    if (mode !== "live") return;
+    const controller = new AbortController();
+    fetch("/api/chat", { signal: controller.signal, headers: { Accept: "application/json" } })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!data) return;
+        setLiveOff(data.enabled === false);
+        const next = readUsage(data);
+        if (next) setUsage(next);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [mode, resetPassed]);
+
+  // Keep the "opens again in…" countdown current while the visitor is waiting.
+  useEffect(() => {
+    if (!limited) return;
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, [limited]);
 
   const state: State = busy
     ? "thinking"
@@ -107,6 +150,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
   async function send(prompt: string) {
     const message = prompt.trim();
     if (!message || request.current) return;
+    if (mode === "live" && liveBlocked) return;
 
     voice.stopListening();
     voice.stopSpeaking();
@@ -146,15 +190,26 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           signal: controller.signal,
         });
 
+        const data = await response.json().catch(() => null);
+
+        if (data?.code === "daily_limit" || data?.code === "site_limit") {
+          const next = readUsage(data);
+          if (next) setUsage({ ...next, remaining: data.code === "daily_limit" ? 0 : next.remaining, paused: data.code === "site_limit" });
+          setNow(Date.now());
+          throw new Error(data.code === "daily_limit"
+            ? "You've used today's live messages. Live chat opens again for you tomorrow."
+            : "Live chat has reached today's limit for all visitors. Please come back tomorrow.");
+        }
+        if (data?.code === "disabled") setLiveOff(true);
         if (response.status === 429) {
           throw new Error("Too many requests. Please wait a minute.");
         }
 
-        const data = await response.json().catch(() => null);
-
         if (!response.ok) {
           throw new Error(data?.error || "Live chat is unavailable.");
         }
+        const next = readUsage(data?.usage);
+        if (next) setUsage(next);
 
         if (typeof data?.reply !== "string" || !data.reply.trim()) {
           throw new Error("No answer returned. Please try again.");
@@ -222,6 +277,11 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
         <button type="button" aria-pressed={purpose === "general"} onClick={() => { reset(); setPurpose("general"); }}>General chat</button>
         <button type="button" aria-pressed={purpose === "interview"} onClick={() => { reset(); setPurpose("interview"); }}>Interview Practice</button>
       </div>}
+      {mode === "live" && (liveOff
+        ? <p className="usage-note usage-closed" role="status">Live AI is switched off right now. Sample Demo still works.</p>
+        : limited && usage
+          ? <p className="usage-note usage-closed" role="status"><strong>{usage.paused && usage.remaining > 0 ? "Today's live chat is full." : `You've used today's ${usage.limit} live messages.`}</strong> Live AI opens again in {timeUntil(usage.resetAt, now)} (at {new Date(usage.resetAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}). Sample Demo is always open.</p>
+          : usage && <p className="usage-note" role="status"><span className="usage-meter" aria-hidden="true"><i style={{ width: `${Math.round(100 * usage.remaining / usage.limit)}%` }}/></span>{usage.remaining} of {usage.limit} live messages left today</p>)}
       <div className="demo">
         <div className="demo-character">
           <p className="portrait-eyebrow">NEXA / YOUR CONVERSATION SPACE</p>
@@ -240,7 +300,7 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
             <div><label htmlFor="practice-track">Track</label><select id="practice-track" value={practiceTrack} disabled={busy || voice.listening || voice.speaking} onChange={event => { reset(); setPracticeTrack(event.target.value as PracticeTrack); }}>{Object.entries(practiceTracks).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
             <div><label htmlFor="practice-level">Level</label><select id="practice-level" value={practiceLevel} disabled={busy || voice.listening || voice.speaking} onChange={event => { reset(); setPracticeLevel(event.target.value as "beginner" | "intermediate"); }}><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option></select></div>
             <p>AI-generated coaching, not a hiring assessment. Changing the track or level starts a new session.</p>
-            {!messages.length && <button type="button" className="practice-start" disabled={busy || voice.listening} onClick={() => void send("Start my interview practice. Ask one " + practiceLevel + " question about " + practiceTracks[practiceTrack] + ". Wait for my answer before giving feedback.")}>Start practice ↗</button>}
+            {!messages.length && <button type="button" className="practice-start" disabled={busy || voice.listening || liveBlocked} onClick={() => void send("Start my interview practice. Ask one " + practiceLevel + " question about " + practiceTracks[practiceTrack] + ". Wait for my answer before giving feedback.")}>Start practice ↗</button>}
           </div>}
           <div ref={log} className={`conversation ${messages.length ? "" : "conversation-empty"}`} role="log" aria-label="NEXA conversation" aria-live="polite">
             {!messages.length && <div className="welcome"><span aria-hidden="true">✦</span><h3>{mode === "live" && purpose === "interview" ? "Let’s practise." : "Hi, I’m NEXA."}</h3><p>{mode === "sample" ? "Choose a task to preview an everyday workflow." : purpose === "interview" ? "Choose a track, answer one question, and get constructive feedback." : "Bring a question, an idea, or something you’re curious about."}</p></div>}
@@ -250,11 +310,11 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
           <p className="copy-notice" role="status">{copyNotice}</p>
           {mode === "sample"
             ? <div className="quick-actions" aria-label="Sample tasks">{Object.keys(samples).map(action => <button type="button" key={action} disabled={busy || voice.listening} onClick={() => void send(action)}>{action}<span aria-hidden="true">↗</span></button>)}</div>
-            : (purpose !== "interview" || messages.length > 0) && <div className="suggested-questions" aria-label="Suggested questions"><p>{messages.length ? "Keep exploring" : "A few places to start"}</p><div>{prompts.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div></div>}
+            : (purpose !== "interview" || messages.length > 0) && <div className="suggested-questions" aria-label="Suggested questions"><p>{messages.length ? "Keep exploring" : "A few places to start"}</p><div>{prompts.map(prompt => <button type="button" key={prompt} disabled={busy || voice.listening || liveBlocked} onClick={() => { setText(prompt); input.current?.focus(); }}>{prompt}</button>)}</div></div>}
           <form onSubmit={event => { event.preventDefault(); void send(text); }}>
             <label className="sr-only" htmlFor="voice-message">Message NEXA</label>
-            <input id="voice-message" ref={input} value={text} maxLength={1500} onChange={event => setText(event.target.value)} placeholder={mode === "sample" ? "Try “Daily briefing”…" : purpose === "interview" ? "Type or dictate your interview answer…" : "Ask anything you’re curious about…"}/>
-            <button type="submit" disabled={busy || voice.listening || !text.trim()} aria-label="Send message">↑</button>
+            <input id="voice-message" ref={input} value={text} maxLength={1500} disabled={liveBlocked} onChange={event => setText(event.target.value)} placeholder={mode === "sample" ? "Try “Daily briefing”…" : liveBlocked ? "Live AI is closed for now. Try Sample Demo." : purpose === "interview" ? "Type or dictate your interview answer…" : "Ask anything you’re curious about…"}/>
+            <button type="submit" disabled={busy || voice.listening || !text.trim() || liveBlocked} aria-label="Send message">↑</button>
           </form>
           <div className="voice-toolbar" aria-label="Voice controls">
             <button type="button" className={`voice-control ${voice.listening ? "active" : ""}`} disabled={busy || !voice.canListen} onClick={() => voice.listening ? voice.stopListening() : voice.startListening(language)}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg>{voice.listening ? "Stop microphone" : "Microphone"}</button>

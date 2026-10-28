@@ -1,3 +1,5 @@
+import { readUsage, reserveMessage } from "../lib/usage.mjs";
+
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -9,13 +11,22 @@ const json = (data, status = 200) =>
   });
 
 export default async function handler(request) {
+  if (request.method === "GET") {
+    // Read-only: lets the page show how many live messages this visitor has left today.
+    if (process.env.NEXA_LIVE_CHAT_ENABLED !== "true") return json({ enabled: false });
+    try {
+      return json({ enabled: true, ...(await readUsage(request)) });
+    } catch {
+      return json({ enabled: true, unavailable: true });
+    }
+  }
   if (request.method !== "POST") {
     return json({ error: "Use POST." }, 405);
   }
 
   // Server-side switch for controlling public API usage.
   if (process.env.NEXA_LIVE_CHAT_ENABLED !== "true") {
-    return json({ error: "Live chat is not enabled yet." }, 503);
+    return json({ error: "Live chat is not enabled yet.", code: "disabled" }, 503);
   }
 
   const origin = request.headers.get("origin");
@@ -104,6 +115,23 @@ export default async function handler(request) {
     return json({ error: "Live chat is not configured." }, 503);
   }
 
+  // Daily limits: each visitor gets a few live messages per day, and the whole site has a cap.
+  // If the counter cannot be reached, the chat stays closed rather than spending without a limit.
+  let usage;
+  try {
+    usage = await reserveMessage(request);
+  } catch {
+    return json({ error: "Live chat is resting right now. Please try again later.", code: "unavailable" }, 503);
+  }
+  if (!usage.ok) {
+    const error = usage.reason === "visitor"
+      ? `You have used today's ${usage.limit} live messages.`
+      : "Live chat has reached today's limit for all visitors.";
+    return json({ error, code: usage.reason === "visitor" ? "daily_limit" : "site_limit",
+      limit: usage.limit, remaining: usage.remaining, resetAt: usage.resetAt }, 429);
+  }
+  const usageInfo = { limit: usage.limit, remaining: usage.remaining, resetAt: usage.resetAt };
+
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -151,7 +179,7 @@ export default async function handler(request) {
       return json({ error: "No answer returned. Please try again." }, 502);
     }
 
-    return json({ reply });
+    return json({ reply, usage: usageInfo });
   } catch {
     return json({ error: "The request failed or timed out. Try again." }, 502);
   }

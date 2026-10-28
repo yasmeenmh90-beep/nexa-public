@@ -205,3 +205,14 @@ test("GET reports when live chat is switched off", async () => {
   process.env.NEXA_LIVE_CHAT_ENABLED = "false";
   assert.deepEqual(await (await handler(new Request("https://nexa-public.netlify.app/api/chat"))).json(), { enabled: false });
 });
+
+test("counters from earlier days are deleted on a new day", async () => {
+  setup(); okAnswer();
+  const memory = memoryStore();
+  useUsageStore(memory);
+  await memory.setJSON("2000-01-01/total", 5);
+  await memory.setJSON("2000-01-01/visitor/abc", 2);
+  await handler(fromIp("5.5.5.5"));
+  assert.ok(memory.keys().every((key) => key.startsWith(today().day + "/")));
+  assert.equal(memory.keys().length, 2);
+});

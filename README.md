@@ -52,7 +52,7 @@ A conversational AI website and engineering case study by **Yasmeen Azmat Ali**.
 | Feature | What visitors can do | How it works |
 | :--- | :--- | :--- |
 | **Sample Demo** | Preview Daily Briefing, Inbox, Calendar, Projects, Career and GitHub tasks | Six fictional, predefined browser-local summaries; no OpenAI request |
-| **Live AI** | Ask general questions and continue with follow-ups | Server-side OpenAI requests with bounded recent conversation context |
+| **Live AI** | Ask general questions and continue with follow-ups | Server-side OpenAI requests with bounded recent conversation context; 10 live messages per visitor per day, with a progress bar and an "opens again in…" countdown |
 | **Browser voice** | Dictate a message and listen to replies | Browser speech recognition and synthesis; review dictated text before Send |
 | **Interview Practice** | Choose AI/ML, full-stack or backend at beginner/intermediate level | AI-generated questions and constructive feedback; educational practice |
 | **Guided tour** | Explore the interface with Back, Next and Finish | Six local steps; no AI requests |
@@ -98,7 +98,8 @@ flowchart TD
 | **React + TypeScript** | Conversational interface, experience selection and bounded in-memory follow-ups |
 | **Vite + Tailwind CSS** | Frontend build, layout and visual styling |
 | **Browser speech APIs** | Microphone transcription and spoken replies where supported |
-| **Netlify Function** | Request validation, feature switch, configured throttling and OpenAI access |
+| **Netlify Function** | Request validation, feature switch, configured throttling, daily usage limits and OpenAI access |
+| **Netlify Blobs** | Daily usage counters (per visitor and for the whole site) |
 | **OpenAI Responses API** | General answers and interview practice using `gpt-4.1-mini` |
 
 > [!IMPORTANT]
@@ -161,6 +162,9 @@ Configure these variables **server-side in Netlify**:
 | :--- | :--- |
 | `OPENAI_API_KEY` | OpenAI project API key used by the function |
 | `NEXA_LIVE_CHAT_ENABLED` | Set to `true` to enable Live AI; other values disable it |
+| `NEXA_CHAT_DAILY_PER_VISITOR` | Optional. Live messages per visitor per UTC day (default `10`, allowed 1–200) |
+| `NEXA_CHAT_DAILY_TOTAL` | Optional. Live messages for the whole site per UTC day (default `100`, allowed 1–5000) |
+| `NEXA_CHAT_SALT` | Recommended. A long random secret used when hashing visitor IP addresses for the daily counters |
 
 Never place the API key in browser code, a `VITE_*` variable, a public file, screenshot or issue. Environment changes must reach the deployed function.
 
@@ -198,8 +202,16 @@ Public links are configured in [`src/config/publicLinks.ts`](src/config/publicLi
 | Upstream timeout | 20 seconds |
 | Output | At most 400 requested output tokens |
 | Rate-limit configuration | 5 requests per 60 seconds per IP/domain grouping |
+| Daily limit per visitor | 10 live messages per UTC day (configurable) |
+| Daily limit for the site | 100 live messages per UTC day (configurable) |
+| Counter storage | Netlify Blobs, strong consistency, ETag-checked increments; earlier days deleted automatically |
+| If counters are unreachable | Live AI stays closed (fail closed) |
 
-Follow-up context increases input-token use. **Netlify usage and OpenAI API usage are separate.** Per-IP throttling is not a global spending cap; check account-level usage and budget controls separately. This repository cannot verify account settings or guarantee a maximum bill.
+Follow-up context increases input-token use. **Netlify usage and OpenAI API usage are separate.**
+
+**Daily limits.** Each visitor (identified by a salted, one-way hash of their IP address and the date — never the raw IP) can send 10 live messages per UTC day. The whole site can send 100. A visitor's own limit is checked first, so one visitor cannot use up the site allowance. When a limit is reached the function returns `429` with `code` (`daily_limit` or `site_limit`) and `resetAt`; the page shows when Live AI opens again and keeps Sample Demo available. `GET /api/chat` returns the visitor's remaining messages without spending one. Visitors who share an IP address (for example on one office network) share one allowance.
+
+These limits bound how much the site can spend, but the repository cannot verify account settings. Set a project spend limit with enforcement in the OpenAI dashboard as well; the owner's deployment uses a $5 monthly enforced limit.
 
 To disable Live AI, set `NEXA_LIVE_CHAT_ENABLED=false` and deploy that change. Local samples remain available.
 

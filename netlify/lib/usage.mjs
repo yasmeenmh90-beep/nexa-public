@@ -1,7 +1,8 @@
 // Daily usage limits for the public live chat.
 // Counts are kept in Netlify Blobs per UTC day: one counter per visitor and one for the whole site.
 // Visitors are identified only by a salted SHA-256 hash of their IP address and the day,
-// so no raw IP address is stored and counters from different days cannot be linked.
+// so no raw IP address is stored. Set NEXA_CHAT_SALT to a long random secret in Netlify.
+// Counters from earlier days are deleted with the first message of each new day.
 import { getStore } from "@netlify/blobs";
 
 const STORE_NAME = "nexa-chat-usage";
@@ -91,8 +92,20 @@ export async function reserveMessage(request, now = new Date()) {
   const mine = await take(`${day}/visitor/${await visitorId(request, day)}`, perVisitor);
   if (!mine.ok) return { ok: false, reason: "visitor", limit: perVisitor, remaining: 0, resetAt };
   const site = await take(`${day}/total`, total);
+  if (site.ok && site.used === 1) await forgetEarlierDays(day);
   if (!site.ok) return { ok: false, reason: "site", limit: perVisitor, remaining: perVisitor - mine.used, resetAt };
   return { ok: true, limit: perVisitor, remaining: perVisitor - mine.used, resetAt };
+}
+
+// Runs once a day (with the day's first message): deletes counters from earlier days.
+// Best effort: a failure here never blocks the chat.
+async function forgetEarlierDays(day) {
+  try {
+    const { blobs } = await store().list();
+    await Promise.all(blobs.filter(({ key }) => !key.startsWith(`${day}/`)).map(({ key }) => store().delete(key)));
+  } catch {
+    // Ignore; the next day's first message tries again.
+  }
 }
 
 /** A small in-memory stand-in for Netlify Blobs, used by the tests. */
@@ -112,5 +125,12 @@ export function memoryStore() {
       data.set(key, { value, etag });
       return { modified: true, etag };
     },
+    async list() {
+      return { blobs: [...data.keys()].map((key) => ({ key })) };
+    },
+    async delete(key) {
+      data.delete(key);
+    },
+    keys: () => [...data.keys()],
   };
 }

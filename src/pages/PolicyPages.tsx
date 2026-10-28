@@ -19,7 +19,7 @@ export function PrivacyPage() {
     <ul>
       <li><strong>No account needed.</strong> The demo works without signing in. There are no advertising or analytics trackers.</li>
       <li><strong>Sample Demo</strong> answers come from fictional text inside your browser. Nothing is sent anywhere.</li>
-      <li><strong>Live AI</strong> sends your question and up to three recent exchanges to OpenAI through a Netlify Function, with OpenAI response storage turned off. Do not enter personal or confidential information. Your IP address is used briefly by Netlify to limit requests to five per minute.</li>
+      <li><strong>Live AI</strong> sends your question and up to three recent exchanges to OpenAI through a Netlify Function, with OpenAI response storage turned off. Do not enter personal or confidential information. Your IP address is used briefly by Netlify to limit requests to five per minute. To limit each visitor to 10 live messages a day, a one-way hash of your IP address and the date is kept with a message count; the IP address itself is not stored.</li>
       <li><strong>Voice</strong> uses your browser’s speech features. Some browsers send audio to their own speech service; NEXA does not receive or store audio.</li>
       <li><strong>Feedback</strong> opens a pre-filled GitHub issue that is public once you submit it.</li>
     </ul>
@@ -40,6 +40,7 @@ export function PrivacyPage() {
     <h2>5. Keeping and deleting data</h2>
     <ul>
       <li>Public chat is cleared when you reset, switch modes or refresh. NEXA keeps no public chat history.</li>
+      <li>Daily message counts for Live AI are deleted automatically after the day ends.</li>
       <li>Account data stays until the account is deleted. Email the contact below to delete an account.</li>
       <li>Each connection can be removed at any time from the provider (for example Google Account → Security → Third-party access) or in n8n. Removing it stops all access straight away.</li>
     </ul>
@@ -83,7 +84,7 @@ export function SecurityPage() {
     <h2>2. Website</h2>
     <ul>
       <li>HTTPS only, with strict security headers: a content security policy, no framing by other sites, and microphone access limited to this site.</li>
-      <li>The OpenAI key stays on the server. Requests are validated, size-limited and limited to five per minute per visitor.</li>
+      <li>The OpenAI key stays on the server. Requests are validated, size-limited and limited to five per minute and 10 per day per visitor, with a daily cap for the whole site and an enforced monthly spend limit at OpenAI.</li>
       <li>The public website has no route to the private workflows or connected accounts.</li>
     </ul>
     <h2>3. Desktop app and workflows</h2>

@@ -44,7 +44,7 @@ const samples: Record<string, string> = {
 };
 const layers: Record<string, string> = {
   'Interface': 'React and TypeScript hold chat state in the browser. Visitors can type, dictate, review text, copy replies and hear answers.',
-  'Public API': 'Live AI uses a Netlify Function with input validation, bounded recent history, request throttling and a server-side OpenAI key.',
+  'Public API': 'Live AI uses a Netlify Function with input validation, bounded recent history, request throttling, daily usage limits and a server-side OpenAI key.',
   'Private access': 'Owner authentication and authorization are planned for a separate private application. Public chat does not provide access to that route.',
   'Orchestration': 'The separate n8n foundation routes specialist workflows. The owner reports verification of seven read-only specialists; this website does not invoke them.',
   'Specialists': 'Planned private domains include calendar, email, projects and developer activity. Memory and write actions require separate permissions and approval design.',
@@ -55,6 +55,7 @@ const faqs = [
   ['What is the difference between Sample and Live AI?', 'Sample Demo uses predefined fictional answers in your browser. Live AI sends your question and up to three recent completed exchanges to OpenAI through a server endpoint. Responses can be inaccurate.'],
   ['Can I speak instead of typing?', 'Yes, in supported browsers. Choose Microphone, speak, review the recognized text and press Send. Enable spoken replies to hear answers. Available languages and voices depend on your browser.'],
   ['Does NEXA access my email, calendar or GitHub?', 'No. Personal accounts and private n8n workflows are disconnected from this public site. The screenshot gallery documents an earlier prototype using sample data.'],
+  ['Is there a limit on Live AI?', 'Yes. Each visitor can send 10 live messages a day, and the site has a daily total. When the limit is reached, NEXA shows when Live AI opens again. Sample Demo is always available.'],
   ['Does it remember our conversation?', 'Live AI uses a bounded amount of recent context for follow-up questions. Reset, changing modes or refreshing clears the chat held by this app. This is not long-term personal memory.'],
   ['Why does the portrait not move its lips?', 'The halo and voice bars indicate speech playback. Precise lip sync is deferred until an audio-driven avatar can preserve NEXA’s identity reliably.'],
   ['What remains on the roadmap?', 'Complete device and accessibility review, monitor usage and publish a clean walkthrough. Owner authentication, personal-service integrations and precise lip sync are separate future milestones.'],

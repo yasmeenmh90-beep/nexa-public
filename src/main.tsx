@@ -5,9 +5,11 @@ import './styles.css';
 
 // Small path router: the landing page stays at "/", the new pages live on their own paths and
 // load on demand, so the landing page does not download the sign-in code.
-// Netlify serves index.html for every path (public/_redirects).
+// Netlify serves index.html for these paths with 200 and for every other path with 404
+// (public/_redirects); keep both lists in sync.
 const auth = () => import('./pages/AuthPages');
 const policy = () => import('./pages/PolicyPages');
+const NotFound = lazy(() => policy().then(m => ({ default: m.NotFoundPage })));
 const routes: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   '/signin': lazy(() => auth().then(m => ({ default: m.SignInPage }))),
   '/signup': lazy(() => auth().then(m => ({ default: m.SignUpPage }))),
@@ -16,7 +18,8 @@ const routes: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   '/terms': lazy(() => policy().then(m => ({ default: m.TermsPage }))),
   '/security': lazy(() => policy().then(m => ({ default: m.SecurityPage }))),
 };
-const Page = routes[window.location.pathname.replace(/\/+$/, '') || '/'];
+const path = window.location.pathname.replace(/\/+$/, '') || '/';
+const Page = path === '/' || path === '/index.html' ? null : routes[path] ?? NotFound;
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>{Page ? <Suspense fallback={null}><Page /></Suspense> : <App />}</React.StrictMode>,
 );

@@ -1,1 +1,10 @@
-/* /index.html 200
+# Known pages get index.html with 200; anything else gets index.html with a real 404 status.
+# Existing files (assets, images, sitemap) and the /api/chat function are served before these rules.
+# Keep this list in sync with the routes in src/main.tsx.
+/signin    /index.html  200
+/signup    /index.html  200
+/account   /index.html  200
+/privacy   /index.html  200
+/terms     /index.html  200
+/security  /index.html  200
+/*         /index.html  404

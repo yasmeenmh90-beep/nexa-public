@@ -13,6 +13,15 @@ function Policy({ title, intro, children }: { title: string; intro: string; chil
   </article></PageShell>;
 }
 
+export function NotFoundPage() {
+  return <PageShell title="Page not found" narrow><article className="policy">
+    <p className="eyebrow">404</p><h1>Page not found</h1>
+    <p className="policy-intro">This address does not match a page on the NEXA website.</p>
+  </article>
+  <div className="buttons"><a className="button primary" href="/">Go to the home page ↗</a><a className="text-link" href="/#demo">Try NEXA ↗</a></div>
+  </PageShell>;
+}
+
 export function PrivacyPage() {
   return <Policy title="Privacy Policy" intro="NEXA has two parts: a public website anyone can try, and a private assistant that only its owner can sign in to. This page explains what each part collects and why.">
     <h2>1. The public website</h2>

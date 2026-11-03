@@ -527,6 +527,8 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:#ffffff
 .app-tile p{font-size:12px}
 .app-tile .app-tag{align-self:center;white-space:nowrap}
 .app-mark{width:40px;height:40px;flex-shrink:0;font-size:13px}
+/* The status tag sits under the description so longer labels never squeeze it. */
+.app-tile{flex-wrap:wrap;row-gap:10px}.app-text{flex-basis:calc(100% - 54px)}.app-tile .app-tag{margin-left:54px}
 /* Live AI daily usage */
 .usage-note{display:flex;align-items:center;gap:10px;margin:0;padding:10px 24px;font-size:11px;color:#c9bfe0;border-bottom:1px solid #c4b5fd15;line-height:1.6}
 .usage-meter{flex:none;width:72px;height:5px;border-radius:99px;background:#c4b5fd22;overflow:hidden}

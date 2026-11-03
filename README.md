@@ -236,6 +236,8 @@ To disable Live AI, set `NEXA_LIVE_CHAT_ENABLED=false` and deploy that change. L
 
 **Recorded engineering checks:** TypeScript compilation, a Vite production build, ten mocked backend tests and static rendered-HTML checks passed for the documented public update. These are previously recorded results; this README edit does not rerun application checks.
 
+**Current test suite:** `tests/chat.test.mjs` has 17 mocked backend tests (29 Oct 2026, daily-limit tests added).
+
 **Owner-reported device checks:** microphone transcription, Live AI answers and spoken replies worked on the deployed website.
 
 Backend tests mock OpenAI. They do not validate live model quality, clipboard permissions, microphone behavior or complete browser accessibility. Browser preview was unavailable during the documented visual update; no complete security audit is claimed.

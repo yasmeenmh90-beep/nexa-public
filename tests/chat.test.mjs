@@ -216,3 +216,13 @@ test("counters from earlier days are deleted on a new day", async () => {
   assert.ok(memory.keys().every((key) => key.startsWith(today().day + "/")));
   assert.equal(memory.keys().length, 2);
 });
+
+test("instructions keep the assistant honest about what this page can do", async () => {
+  setup();
+  let instructions = "";
+  globalThis.fetch = async (url, options) => { instructions = JSON.parse(options.body).instructions; return new Response(JSON.stringify({ output: [{ content: [{ type: "output_text", text: "Hi" }] }] }), { status: 200 }); };
+  await handler(fromIp("6.6.6.6"));
+  assert.match(instructions, /text only/);
+  assert.match(instructions, /cannot see images/);
+  assert.match(instructions, /Never offer features this page does not have/);
+});

@@ -262,8 +262,8 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
     <div className="demo-shell">
       <div className="demo-heading">
         <div className="mode-switch" role="group" aria-label="Chat mode">
-          <button type="button" aria-pressed={mode === "sample"} onClick={() => { reset(); setMode("sample"); }}>Sample Demo</button>
-          <button type="button" aria-pressed={mode === "live"} onClick={() => { reset(); setMode("live"); }}>Live AI <span>✦</span></button>
+          <button type="button" aria-pressed={mode === "sample"} onClick={() => { if (mode !== "sample") { reset(); setMode("sample"); } }}>Sample Demo</button>
+          <button type="button" aria-pressed={mode === "live"} onClick={() => { if (mode !== "live") { reset(); setMode("live"); } }}>Live AI <span>✦</span></button>
         </div>
         <span className={`chat-status status-${state}`}><i aria-hidden="true"/>{state === "idle" ? "Ready to chat" : state === "listening" ? "Listening" : state === "thinking" ? "Preparing an answer" : "Speaking"}</span>
       </div>
@@ -274,8 +274,8 @@ export default function VoiceChat({ samples, renderPortrait }: Props) {
         {" "}Personal accounts are not connected.
       </p>
       {mode === "live" && <div className="chat-tool-tabs" role="group" aria-label="Live AI experience">
-        <button type="button" aria-pressed={purpose === "general"} onClick={() => { reset(); setPurpose("general"); }}>General chat</button>
-        <button type="button" aria-pressed={purpose === "interview"} onClick={() => { reset(); setPurpose("interview"); }}>Interview Practice</button>
+        <button type="button" aria-pressed={purpose === "general"} onClick={() => { if (purpose !== "general") { reset(); setPurpose("general"); } }}>General chat</button>
+        <button type="button" aria-pressed={purpose === "interview"} onClick={() => { if (purpose !== "interview") { reset(); setPurpose("interview"); } }}>Interview Practice</button>
       </div>}
       {mode === "live" && (liveOff
         ? <p className="usage-note usage-closed" role="status">Live AI is switched off right now. Sample Demo still works.</p>
